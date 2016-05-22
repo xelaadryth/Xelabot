@@ -2,7 +2,7 @@ import traceback
 
 
 class Commands:
-    def __init__(self, exact_match_commands=None, starts_with_commands = None):
+    def __init__(self, exact_match_commands=None, starts_with_commands=None):
         if exact_match_commands is None:
             self.exact_match_commands = {}
         else:

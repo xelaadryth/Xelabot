@@ -1,16 +1,15 @@
-import socket
 import time
 import traceback
 
 from .channel_manager import ChannelManager
 from .commands import Commands
+from .irc_bot import IRCBot
 from .player_manager import PlayerManager
-from utils.timer_thread import TimerThread
 
 import settings
 
 
-class Bot:
+class QuestBot(IRCBot):
     """
     Sends and receives messages to and from IRC channels.
     """
@@ -19,15 +18,8 @@ class Bot:
         :param nickname: str - The bot's username - must be lowercase
         :param oauth: str - The bot's oauth
         """
-        self.nickname = nickname
-        self.oauth = oauth
+        super().__init__(nickname, oauth)
 
-        # Initializing commands from generic IRC messages
-        self.irc_commands = Commands(starts_with_commands={
-            'ping': lambda **kwargs: self.send_pong(kwargs['command'].split()[1]),
-            ':tmi.twitch.tv notice * :error logging in': lambda **_: self.login_failure(),
-            ':tmi.twitch.tv notice * :login unsuccessful': lambda **_: self.login_failure()
-        })
         # Commands for direct whispers to the bot
         self.whisper_commands = Commands(exact_match_commands={
             '!faq': self.faq_whisper,
@@ -37,68 +29,16 @@ class Bot:
             '!prestige': self.try_prestige
         })
 
-        # Initializing socket
-        self.irc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.irc_sock.settimeout(settings.IRC_POLL_TIMEOUT)
-
         print('Initializing channel manager...')
         self.channel_manager = ChannelManager(self)
         print('Initializing player manager...')
         self.player_manager = PlayerManager(self)
 
-    def __send_raw_instant(self, msg_str):
-        """
-        Sends a raw IRC message with no rate-limiting concerns.
-        :param msg_str:
-        :return:
-        """
-        print('> ' + msg_str)
-        self.irc_sock.send(bytes(msg_str + '\r\n', 'UTF-8'))
-
-    def send_raw(self, msg_str):
-        """
-        Sends a raw IRC message with post-delay to be consistent with rate-limiting.
-        :param msg_str: str - The raw IRC message to be sent
-        """
-        self.__send_raw_instant(msg_str)
-
-        # Prevent rate-limiting
-        time.sleep(settings.IRC_SEND_COOLDOWN)
-
-    def recv_raw(self):
-        """
-        Receives a raw IRC message.
-        :return: str - The raw IRC message received
-        """
-        try:
-            buf = self.irc_sock.recv(settings.IRC_RECV_SIZE)
-            total_data = buf
-
-            if not buf:
-                    raise Exception('Socket connection broken.')
-
-            # Keep trying to pull until there's nothing left.
-            while len(buf) == settings.IRC_RECV_SIZE:
-                buf = self.irc_sock.recv(settings.IRC_RECV_SIZE)
-                total_data += buf
-                # Sometimes there's a delay between different parts of the message
-                time.sleep(settings.IRC_CHUNK_DELAY)
-                if not buf:
-                    raise Exception('Socket connection broken.')
-            return str(total_data, encoding='UTF-8').strip('\r\n')
-        except socket.timeout:
-            # We quickly time out if there's no messages to receive as set by socket set timeout in the init
-            return None
-
     def connect(self):
         """
         Connect to the IRC server and join the intended channels.
         """
-        print('Connecting to Twitch IRC service...')
-        self.irc_sock.connect((settings.IRC_SERVER, settings.IRC_PORT))
-        self.__send_raw_instant('PASS ' + self.oauth)
-        self.__send_raw_instant('USER {0} {0} {0} :{0}'.format(self.nickname))
-        self.__send_raw_instant('NICK ' + self.nickname)
+        super().connect()
 
         # Bot should always join the broadcaster's channel
         if settings.BROADCASTER_NAME not in self.channel_manager.channels and (
@@ -110,21 +50,13 @@ class Bot:
             if channel.channel_settings['auto_join']:
                 print('Joining channel: {}...'.format(channel_name))
                 # Join rate-limiting is at a rate of 50 joins per 15 seconds
-                self.__send_raw_instant('JOIN #' + channel_name)
+                self.send_raw_instant('JOIN #' + channel_name)
                 time.sleep(settings.IRC_JOIN_SLEEP_TIME)
 
         # Enable twitch badges/tags
-        self.__send_raw_instant('CAP REQ :twitch.tv/tags')
+        self.send_raw_instant('CAP REQ :twitch.tv/tags')
         # Enable whisper receiving
-        self.__send_raw_instant('CAP REQ :twitch.tv/commands')
-
-    def send_pong(self, server):
-        """
-        Send a keep-alive message when prompted with a ping.
-        :param command: str - IRC server ping message of the form "PING :tmi.twitch.tv"
-        """
-        # Guaranteed to be at least two string tokens from the check in the main run loop
-        self.__send_raw_instant('PONG ' + server)
+        self.send_raw_instant('CAP REQ :twitch.tv/commands')
 
     def send_msg(self, channel_name, msg_str):
         """
@@ -142,13 +74,6 @@ class Bot:
         """
         # It doesn't matter what channel we use to send whispers, but our own channel is safest
         self.send_msg(self.nickname, '/w {} {}'.format(target_name, msg_str))
-
-    @staticmethod
-    def login_failure():
-        """
-        If we fail to login, raise an exception.
-        """
-        raise RuntimeError('Failed to login, most likely invalid login credentials.')
 
     def faq_whisper(self, display_name=None, **_):
         if not display_name:
@@ -212,7 +137,7 @@ class Bot:
         try:
             raw_msg_tokens = raw_msg.split(maxsplit=4)
 
-            display_name, is_mod, is_sub = Bot.parse_tags(raw_msg_tokens[0][1:])
+            display_name, is_mod, is_sub = QuestBot.parse_tags(raw_msg_tokens[0][1:])
 
             # If we fail to get the display name for whatever reason, get it from the raw IRC message
             if display_name is None:
@@ -241,9 +166,13 @@ class Bot:
         """
         display_name, channel_name, msg, is_mod, is_sub = self.parse_msg(raw_msg)
 
-        # Skip the message if it's from an invalid channel
+        # All channel commands start with '!'
+        if msg[0] != '!':
+            return
+
+        # Skip the message if it's from an invalid channel; Xelabot should only be listening to channels it's in.
         if channel_name not in self.channel_manager.channels.keys():
-            print("Message from invalid channel: #" + channel_name)
+            print("Message from channel not added to Channel Manager: #" + channel_name)
             return
 
         channel = self.channel_manager.channels[channel_name]
@@ -278,11 +207,9 @@ class Bot:
         Given an arbitrary IRC message, handle it as necessary.
         :param raw_msg: str - The IRC raw message
         """
-        if raw_msg:
-            print(raw_msg)
-        raw_msg_tokens = raw_msg.split()
+        super().handle_msg(raw_msg)
 
-        self.irc_commands.execute_command(raw_msg)
+        raw_msg_tokens = raw_msg.split()
 
         if len(raw_msg_tokens) < 3:
             return
@@ -294,24 +221,3 @@ class Bot:
         except Exception as e:
             print('IRC message handler error: {}'.format(repr(e)))
             traceback.print_exc()
-
-    def run(self):
-        """
-        Core update loop for the bot. Checks for completed timer callbacks and then handles input.
-        """
-        while True:
-            # Check to see if any timers completed and activate their callbacks
-            TimerThread.check_timers()
-
-            raw_msgs = self.recv_raw()
-
-            # We return None if we timed out on the receive in settings.IRC_POLL_TIMEOUT seconds to check our timers
-            # or if we failed to receive messages
-            if raw_msgs is None:
-                continue
-
-            # Splitting on \r\n allows reading of multiple commands with one recv
-            for raw_msg in raw_msgs.split('\r\n'):
-                self.handle_msg(raw_msg)
-
-        raise RuntimeError('Exited execution loop.')

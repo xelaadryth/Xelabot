@@ -43,7 +43,8 @@ class ChannelManager:
         """
         channel = self.channels[username]
 
-        with open(os.path.join(settings.CHANNEL_DATA_PATH, channel.channel_settings['name'] + '.txt'), 'w') as channel_file:
+        with open(os.path.join(
+                settings.CHANNEL_DATA_PATH, channel.channel_settings['name'] + '.txt'), 'w') as channel_file:
             json.dump(channel.channel_settings, channel_file)
 
     def add_channel(self, username):

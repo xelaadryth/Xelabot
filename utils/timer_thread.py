@@ -75,6 +75,7 @@ class TimerThread:
         Cancel the timer.
         """
         self.cancel_event.set()
+        TimerThread.active_timers.remove(self)
         self.thread.join()
 
     def remaining(self):

@@ -43,13 +43,11 @@ class Channel:
             if command in self.mod_commands.exact_match_commands:
                 self.channel_manager.bot.send_whisper(display_name.lower(), 'That\'s a mod-only command.')
 
-        # TODO: Convert quest commands to new-style commands
-        if msg[0] == '!':
-            # Check quest commands
-            if self.channel_settings['quest_enabled']:
-                self.quest.check_commands(display_name.lower(), msg)
-            elif msg.lower() == "!quest":
-                self.send_msg("Questing is currently disabled. Mods can use !queston to re-enable questing.")
+        # Check quest commands
+        if self.channel_settings['quest_enabled']:
+            self.quest.check_commands(display_name.lower(), msg)
+        elif msg.lower() == "!quest":
+            self.send_msg("Questing is currently disabled. Mods can use !queston to re-enable questing.")
 
         # TODO: Add back in loyalty commands with https://tmi.twitch.tv/group/user/USERNAME_HERE/chatters
         # Check loyalty commands

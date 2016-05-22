@@ -2,7 +2,7 @@ import time
 import traceback
 
 import settings
-from twitch.bot import Bot
+from twitch.quest_bot import QuestBot
 
 
 def run_bot():
@@ -11,7 +11,7 @@ def run_bot():
     """
     try:
         # Create the bot
-        bot = Bot(settings.BOT_NAME, settings.BOT_OAUTH)
+        bot = QuestBot(settings.BOT_NAME, settings.BOT_OAUTH)
         bot.connect()
         bot.run()
     except Exception as e:
