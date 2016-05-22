@@ -18,24 +18,35 @@ class Bot:
         self.nickname = nickname
         self.oauth = oauth
 
+        # Initializing socket
         self.irc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.irc_sock.settimeout(settings.IRC_POLL_TIMEOUT)
 
         self.last_sent_message = None
 
-        self.channel_manager = ChannelManager(self)
-        self.player_manager = PlayerManager(self)
-
         # All the TimerThreads
         self.timer_callbacks = set()
 
-    def send_raw(self, msg_str):
+        print('Initializing channel manager...')
+        self.channel_manager = ChannelManager(self)
+        print('Initializing player manager...')
+        self.player_manager = PlayerManager(self)
+
+    def __send_raw_instant(self, msg_str):
         """
-        Sends a raw IRC message.
-        :param msg_str: str - The raw IRC message to be sent
+        Sends a raw IRC message with no rate-limiting concerns.
+        :param msg_str:
+        :return:
         """
         self.irc_sock.send(bytes(msg_str + "\r\n", "UTF-8"))
         self.last_sent_message = msg_str
+
+    def send_raw(self, msg_str):
+        """
+        Sends a raw IRC message with post-delay to be consistent with rate-limiting.
+        :param msg_str: str - The raw IRC message to be sent
+        """
+        self.__send_raw_instant(msg_str)
 
         # Prevent rate-limiting
         time.sleep(settings.IRC_SEND_COOLDOWN)
@@ -50,7 +61,7 @@ class Bot:
             total_data = buf
 
             if not buf:
-                    raise Exception("Socket connection broken.")
+                    raise Exception('Socket connection broken.')
 
             # Keep trying to pull until there's nothing left.
             while len(buf) == settings.IRC_RECV_SIZE:
@@ -59,7 +70,7 @@ class Bot:
                 # Sometimes there's a delay between different parts of the message
                 time.sleep(settings.IRC_CHUNK_DELAY)
                 if not buf:
-                    raise Exception("Socket connection broken.")
+                    raise Exception('Socket connection broken.')
             return str(total_data, encoding="UTF-8").strip("\r\n")
         except socket.timeout:
             # We quickly time out if there's no messages to receive as set by socket set timeout in the init
@@ -69,20 +80,24 @@ class Bot:
         """
         Connect to the IRC server and join the intended channels.
         """
+        print('Connecting to Twitch IRC service...')
         self.irc_sock.connect((settings.IRC_SERVER, settings.IRC_PORT))
-        self.send_raw("PASS " + self.oauth)
-        self.send_raw("USER " + self.nickname + " " + self.nickname + " " + self.nickname + " :" + self.nickname)
-        self.send_raw("NICK " + self.nickname)
+        self.__send_raw_instant('PASS ' + self.oauth)
+        self.__send_raw_instant('USER ' + self.nickname + " " + self.nickname + " " + self.nickname + " :" + self.nickname)
+        self.__send_raw_instant('NICK ' + self.nickname)
 
         # Bot should always join the broadcaster's channel
         if settings.BROADCASTER_NAME not in self.channel_manager.channels:
+            print('Adding broadcaster to channel data...')
             self.channel_manager.add_channel(settings.BROADCASTER_NAME)
 
         for channel_name, channel in self.channel_manager.channels.items():
             if channel.channel_settings['auto_join']:
+                print('Joining channel: {}'.format(channel_name))
                 # Normally we'd need to sleep for 0.3 seconds here to prevent JOIN rate-limiting,
                 # but our send delay is already longer than that
-                self.send_raw("JOIN #" + channel_name)
+                self.__send_raw_instant("JOIN #" + channel_name)
+                time.sleep(settings.IRC_JOIN_SLEEP_TIME)
 
     def send_pong(self, server_str):
         """
@@ -284,8 +299,8 @@ class Bot:
                 elif irc_msg.startswith("PING"):
                     self.send_pong(irc_msg.split()[1])
                 elif irc_msg.startswith(":tmi.twitch.tv NOTICE * :Error logging in"):
-                    print("Login unsuccessful")
+                    raise RuntimeError("Incorrect login credentials.")
                 elif irc_msg.startswith(":tmi.twitch.tv NOTICE * :Login unsuccessful"):
-                    print("Login unsuccessful")
+                    raise RuntimeError("Incorrect login credentials.")
 
         print("Exited execution loop.")

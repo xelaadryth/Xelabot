@@ -1,4 +1,5 @@
 import settings
+import time
 import traceback
 
 from utils.bot import Bot
@@ -14,11 +15,12 @@ def run_bot():
         bot.connect()
         bot.run()
     except Exception as e:
-        print("BOT CRASHED: " + str(e))
+        print("BOT CRASHED: " + repr(e))
         traceback.print_exc()
 
         # If the bot crashes for whatever reason, restart it
         if settings.RESTART_ON_CRASH:
+            time.sleep(5)
             run_bot()
 
 if __name__ == "__main__":
