@@ -28,7 +28,7 @@ IRC_SEND_COOLDOWN = 1.6
 IRC_JOIN_SLEEP_TIME = 0.35
 
 # Bot settings
-RESTART_ON_CRASH = True
+RESTART_ON_CRASH = False
 DATA_PATH = 'data'
 CHANNEL_DATA_PATH = os.path.join(DATA_PATH, 'channels')
 PLAYER_DATA_PATH = os.path.join(DATA_PATH, 'players')

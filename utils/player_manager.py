@@ -27,6 +27,8 @@ class PlayerManager:
         self.players = PlayerManager.PlayerDict()
 
         # Load up all the existing channel information
+        if not os.path.exists(settings.PLAYER_DATA_PATH):
+            os.makedirs(settings.PLAYER_DATA_PATH)
         for filename in os.listdir(settings.PLAYER_DATA_PATH):
             with open(os.path.join(settings.PLAYER_DATA_PATH, filename)) as json_data:
                 player_settings = json.load(json_data)

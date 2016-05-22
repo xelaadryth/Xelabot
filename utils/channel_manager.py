@@ -22,6 +22,8 @@ class ChannelManager:
         self.channels = {}
 
         # Load up all the existing channel information
+        if not os.path.exists(settings.CHANNEL_DATA_PATH):
+            os.makedirs(settings.CHANNEL_DATA_PATH)
         for filename in os.listdir(settings.CHANNEL_DATA_PATH):
             with open(os.path.join(settings.CHANNEL_DATA_PATH, filename)) as json_data:
                 channel_settings = json.load(json_data)
