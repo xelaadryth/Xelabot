@@ -4,8 +4,8 @@ import settings
 from utils.timer_thread import TimerThread
 
 
+# TODO: Update this file
 class Quest:
-
     def __init__(self, channel, bot):
         self.channel = channel
         self.bot = bot
@@ -32,21 +32,17 @@ class Quest:
             [self.quest_prison, self.quest_escape, self.quest_gates]
         ]
 
-    def update(self):
-        if self.timer is not None and self.timer.is_complete():
-            self.quest_advance()
-
     def check_commands(self, user, original_msg):
         msg = original_msg.lower()
         if msg in self.commands:
             self.commands[msg](user, original_msg)
 
     def start_timer(self, duration):
-        self.timer = TimerThread(duration)
+        self.timer = TimerThread(duration, self.quest_advance)
 
     def kill_timer(self):
         if self.timer is not None:
-            self.timer.stop()
+            self.timer.cancel()
             self.timer = None
 
     def quest_cooldown(self):
@@ -80,7 +76,7 @@ class Quest:
         self.quest_state = 2
         self.start_timer(settings.QUEST_DURATION)
 
-    def generate_quest(self, ):
+    def generate_quest(self):
         # Set the default quest
         cur_quest = random.choice(self.quest_lists[len(self.adventurers)])
 

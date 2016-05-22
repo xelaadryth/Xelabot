@@ -1,10 +1,12 @@
 import threading
 
 
-class TimerThread():
+class TimerThread:
     """
     A timer that can be canceled.
     """
+    active_timers = set()
+
     def __init__(self, duration, callback):
         self.callback = callback
 
@@ -22,6 +24,8 @@ class TimerThread():
         self.thread = threading.Thread(target=self.run_timer)
         self.thread.daemon = True
         self.thread.start()
+
+        TimerThread.active_timers.add(self)
 
     def run_timer(self):
         """
@@ -43,12 +47,28 @@ class TimerThread():
         the created daemon thread.
         :return: bool - True if the timer has ticked to 0 or has been canceled
         """
-        if self.complete_event.is_set():
-            if not self.cancel_event.set():
-                self.callback()
-            return True
-        else:
-            return False
+        if self.complete_event.is_set() and not self.cancel_event.set():
+            return self.callback
+
+        return None
+
+    @staticmethod
+    def check_timers():
+        """
+        Check to see if any timers completed and activate their callbacks and remove ones that are completed or stopped.
+        """
+        callbacks = []
+        remaining_timers = set()
+        for timer in TimerThread.active_timers:
+            callback = timer.is_complete()
+            if callback:
+                callbacks.append(callback)
+            else:
+                remaining_timers.add(timer)
+        TimerThread.active_timers = remaining_timers
+
+        for callback in callbacks:
+            callback()
 
     def cancel(self):
         """

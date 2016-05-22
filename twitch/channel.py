@@ -1,77 +1,63 @@
+from .commands import Commands
 from quests.quest import Quest
 
 
 class Channel:
-    def __init__(self, owner, channel_settings, bot):
+    def __init__(self, owner, channel_settings, channel_manager):
         self.owner = owner
-        self.bot = bot
-
-        self.mods = {owner}
-
+        self.channel_manager = channel_manager
         self.channel_settings = channel_settings
 
-        self.quest = Quest(self, bot)
+        self.mod_commands = Commands(exact_match_commands={
+            '!queston': lambda **_: self.channel_manager.enable_quest(self.owner),
+            '!questoff': lambda **_: self.channel_manager.disable_quest(self.owner),
+            '!questcooldown': lambda **kwargs: self.set_quest_cooldown(kwargs['full_command'], kwargs['display_name'])
+        })
 
-        self.viewers = set()
+        self.quest = Quest(self, self.channel_manager.bot)
 
     def send_msg(self, msg):
         """
         Makes the bot send a message in the current channel.
         :param msg: str - The message to send.
         """
-        self.bot.send_msg(self.owner, msg)
+        self.channel_manager.bot.send_msg(self.owner, msg)
 
-    # TODO: Remove this
-    def check_commands(self, user, original_msg):
-        msg = original_msg.lower()
+    def set_quest_cooldown(self, full_command='', display_name=''):
+        try:
+            self.channel_manager.set_quest_cooldown(self.owner, int(full_command.split(maxsplit=1)[1]))
+        except (IndexError, ValueError):
+            self.channel_manager.bot.send_whisper(display_name, 'Invalid usage! Sample usage: !questcooldown 90')
+
+    def check_commands(self, display_name, msg, is_mod, is_sub):
+        # Channel owner gets all accesses
+        if display_name.lower() == self.owner:
+            is_mod = True
+            is_sub = True
+
+        command = msg.split(maxsplit=1)[0]
+
+        if is_mod:
+            self.mod_commands.execute_command(command, display_name=display_name, full_command=msg)
+        else:
+            if command in self.mod_commands.exact_match_commands:
+                self.channel_manager.bot.send_whisper(display_name.lower(), 'That\'s a mod-only command.')
+
+        # TODO: Convert quest commands to new-style commands
         if msg[0] == '!':
             # Check quest commands
             if self.channel_settings['quest_enabled']:
-                self.quest.check_commands(user, original_msg)
-            elif original_msg.lower() == "!quest":
+                self.quest.check_commands(display_name.lower(), msg)
+            elif msg.lower() == "!quest":
                 self.send_msg("Questing is currently disabled. Mods can use !queston to re-enable questing.")
 
-            # Check loyalty commands
-            # if msg == "!" + self.channel_settings['loyalty_name']:
-            #     if user == self.owner:
-            #         self.send_msg("You are the owner of this channel.")
-            #     elif user in self.channel_settings['loyalty']:
-            #         self.send_msg(user + " has " + str(self.channel_settings['loyalty'][user]) + " " +
-            #                       self.channel_settings['loyalty_name'] + ".")
-            #     else:
-            #         self.send_msg(user + " has 0 " + self.channel_settings['loyalty_name'] + ".")
-
-    def add_mod(self, username):
-        """
-        Marks a user as a mod in the channel.
-        :param username: str - The user to mark as a mod
-        """
-        self.mods.add(username)
-
-    def remove_mod(self, username):
-        """
-        Marks a user as not a mod in the channel.
-        :param username: str - The user to mark as not a mod
-        """
-        self.mods.discard(username)
-
-    def is_mod(self, username):
-        """
-        Checks if a user is a mod in the current channel.
-        :param username: str - The user to check mod status for
-        """
-        return username in self.mods or username == self.owner
-
-    def add_viewer(self, username):
-        """
-        Marks a user as a viewer of the current channel.
-        :param username: str - The user to mark as a viewer
-        """
-        self.viewers.add(username)
-
-    def remove_viewer(self, username):
-        """
-        Marks a user as not a viewer of the current channel.
-        :param username: str - The user to mark as not a viewer
-        """
-        self.viewers.discard(username)
+        # TODO: Add back in loyalty commands with https://tmi.twitch.tv/group/user/USERNAME_HERE/chatters
+        # Check loyalty commands
+        # if msg == "!" + self.channel_settings['loyalty_name']:
+        #     if user == self.owner:
+        #         self.send_msg("You are the owner of this channel.")
+        #     elif user in self.channel_settings['loyalty']:
+        #         self.send_msg(user + " has " + str(self.channel_settings['loyalty'][user]) + " " +
+        #                       self.channel_settings['loyalty_name'] + ".")
+        #     else:
+        #         self.send_msg(user + " has 0 " + self.channel_settings['loyalty_name'] + ".")

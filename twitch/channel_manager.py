@@ -34,7 +34,7 @@ class ChannelManager:
                 if key not in channel_settings_keys:
                     channel_settings[key] = value
 
-            self.channels[channel_settings['name']] = Channel(channel_settings['name'], channel_settings, bot)
+            self.channels[channel_settings['name']] = Channel(channel_settings['name'], channel_settings, self)
 
     def save_channel(self, username):
         """
@@ -61,13 +61,11 @@ class ChannelManager:
 
     def delete_channel(self, username):
         """
-        Removes a channel from the ChannelManager and turns off auto_join in persistent storage.
-        Does not delete stored data.
+        Turns off auto_join in persistent storage. Does not delete stored data.
         :param username: str - The owner of the channel you want to remove
         """
         if username in self.channels.keys():
             self.disable_auto_join(username)
-            del self.channels[username]
 
     def reset_channel(self, username):
         """
@@ -127,8 +125,12 @@ class ChannelManager:
         :param channel_name: str - The owner of the channel who you are changing settings for
         :param cooldown: int - The number of seconds you must wait before going on another quest.
         """
-        if cooldown < 0:
-            cooldown = 0
+        channel = self.channels[channel_name]
+        if cooldown < 5:
+            channel.send_msg('Cooldown must be at least 5 seconds.')
+            return
 
         self.channels[channel_name].channel_settings['quest_cooldown'] = cooldown
         self.save_channel(channel_name)
+
+        channel.send_msg('Channel cooldown set to {} seconds.'.format(cooldown))
