@@ -1,4 +1,4 @@
-from .quest import Quest
+from quests.quest import Quest
 
 
 class Channel:

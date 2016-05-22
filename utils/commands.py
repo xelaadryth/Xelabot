@@ -1,2 +1,0 @@
-class Commands:
-    pass

@@ -1,7 +1,7 @@
 import random
 
 import settings
-from .timer_thread import TimerThread
+from utils.timer_thread import TimerThread
 
 
 class Quest:

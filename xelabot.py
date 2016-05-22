@@ -1,8 +1,8 @@
-import settings
 import time
 import traceback
 
-from utils.bot import Bot
+import settings
+from twitch.bot import Bot
 
 
 def run_bot():

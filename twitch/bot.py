@@ -1,9 +1,10 @@
-import settings
 import socket
 import time
 
-from utils.channel_manager import ChannelManager
-from utils.player_manager import PlayerManager
+from .channel_manager import ChannelManager
+from .player_manager import PlayerManager
+
+import settings
 
 
 class Bot:
@@ -93,9 +94,8 @@ class Bot:
 
         for channel_name, channel in self.channel_manager.channels.items():
             if channel.channel_settings['auto_join']:
-                print('Joining channel: {}'.format(channel_name))
-                # Normally we'd need to sleep for 0.3 seconds here to prevent JOIN rate-limiting,
-                # but our send delay is already longer than that
+                print('Joining channel: {}...'.format(channel_name))
+                # Join rate-limiting is at a rate of 50 joins per 15 seconds
                 self.__send_raw_instant("JOIN #" + channel_name)
                 time.sleep(settings.IRC_JOIN_SLEEP_TIME)
 
@@ -104,7 +104,7 @@ class Bot:
         Send a keep-alive message when prompted with a ping.
         :param server_str: Server to respond to.
         """
-        self.send_raw("PONG " + server_str)
+        self.__send_raw_instant("PONG " + server_str)
 
     def send_msg(self, channel_name, msg_str):
         """
@@ -182,7 +182,7 @@ class Bot:
                                              "https://dl.dropboxusercontent.com/u/90882877/Xelabot/Xelabot.txt")
                         elif msg == "!requestleave":
                             self.channel_manager.delete_channel(user)
-                            self.send_raw("PART #" + user)
+                            self.__send_raw_instant("PART #" + user)
                             channel.send_msg("Xelabot has left " + user + "'s channel.")
                         elif msg == "!gold" or msg == "!exp":
                             channel.send_msg("Please use !stats instead, this command has been deprecated.")

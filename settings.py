@@ -23,6 +23,7 @@ IRC_RECV_SIZE = 1024
 # If Twitch sends a bunch of messages at once, it chunks it into multiple sends that may be delayed
 IRC_CHUNK_DELAY = 0.15
 # Rate-limit protection: 20 commands within 30 second period, or 1.5 second sleep time
+# Whisper rate-limit is actually 3 per second, 100 per minute (0.6 seconds) but to be safe we share the same cooldown
 IRC_SEND_COOLDOWN = 1.6
 # Rate-limit protection: 50 JOINs per 15 seconds, or 0.3 sleep time
 IRC_JOIN_SLEEP_TIME = 0.35
