@@ -12,10 +12,10 @@ class ChannelManager:
     """
     default_settings = {
         'name': None,
-        'auto_join': True,
-        'quest_enabled': True,
-        'quest_cooldown': settings.QUEST_DEFAULT_COOLDOWN
+        'auto_join': True
     }
+
+    channel_type = Channel
 
     def __init__(self, bot):
         self.bot = bot
@@ -34,7 +34,8 @@ class ChannelManager:
                 if key not in channel_settings_keys:
                     channel_settings[key] = value
 
-            self.channels[channel_settings['name']] = Channel(channel_settings['name'], channel_settings, self)
+            self.channels[channel_settings['name']] = self.channel_type(
+                channel_settings['name'], channel_settings, self)
 
     def save_channel(self, username):
         """
@@ -53,9 +54,9 @@ class ChannelManager:
         :param username: str - The owner of the channel you want to add
         """
         if username not in self.channels:
-            channel_settings = copy.deepcopy(ChannelManager.default_settings)
+            channel_settings = copy.deepcopy(self.default_settings)
             channel_settings['name'] = username.lower()
-            self.channels[username] = Channel(channel_settings['name'], channel_settings, self.bot)
+            self.channels[username] = self.channel_type(channel_settings['name'], channel_settings, self)
             self.save_channel(username)
         else:
             self.channels[username].enable_auto_join()
@@ -76,34 +77,6 @@ class ChannelManager:
         self.channels.pop(username)
         self.add_channel(username)
 
-    def enable_quest(self, channel_name):
-        """
-        Enables the ability to start quests in the current channel.
-        :param channel_name: str - The owner of the channel who you are changing settings for
-        """
-        channel = self.channels[channel_name]
-        if not channel.channel_settings['quest_enabled']:
-            channel.channel_settings['quest_enabled'] = True
-            self.channels[channel_name].quest.quest_advance()
-            self.save_channel(channel_name)
-            self.bot.send_msg(channel_name, 'Questing enabled. Type "!quest" to start a quest!')
-        else:
-            self.bot.send_msg(channel_name, 'Questing already enabled. Type "!quest" to start a quest!')
-
-    def disable_quest(self, channel_name):
-        """
-        Disables the ability to start quests in the current channel.
-        :param channel_name: str - The owner of the channel who you are changing settings for
-        """
-        if self.channels[channel_name].channel_settings['quest_enabled']:
-            self.channels[channel_name].quest.kill_timer()
-            self.channels[channel_name].quest.quest_state = 0
-            self.channels[channel_name].channel_settings['quest_enabled'] = False
-            self.save_channel(channel_name)
-            self.bot.send_msg(channel_name, "Questing disabled.")
-        else:
-            self.bot.send_msg(channel_name, "Questing already disabled.")
-
     def enable_auto_join(self, channel_name):
         """
         Bot will join the given channel on bot startup.
@@ -119,19 +92,3 @@ class ChannelManager:
         """
         self.channels[channel_name].channel_settings['auto_join'] = False
         self.save_channel(channel_name)
-
-    def set_quest_cooldown(self, channel_name, cooldown):
-        """
-        Set the cooldown for going on quests.
-        :param channel_name: str - The owner of the channel who you are changing settings for
-        :param cooldown: int - The number of seconds you must wait before going on another quest.
-        """
-        channel = self.channels[channel_name]
-        if cooldown < 5:
-            channel.send_msg('Cooldown must be at least 5 seconds.')
-            return
-
-        self.channels[channel_name].channel_settings['quest_cooldown'] = cooldown
-        self.save_channel(channel_name)
-
-        channel.send_msg('Channel cooldown set to {} seconds.'.format(cooldown))

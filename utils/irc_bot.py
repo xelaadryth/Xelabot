@@ -1,9 +1,8 @@
 import socket
 import time
 
-from .commands import Commands
+from utils.commands import Commands
 from utils.timer_thread import TimerThread
-
 import settings
 
 

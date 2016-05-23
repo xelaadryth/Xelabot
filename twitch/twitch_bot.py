@@ -2,16 +2,15 @@ import time
 import traceback
 
 from .channel_manager import ChannelManager
-from .commands import Commands
-from .irc_bot import IRCBot
-from .player_manager import PlayerManager
-
+from.player_manager import PlayerManager
+from utils.commands import Commands
+from utils.irc_bot import IRCBot
 import settings
 
 
-class QuestBot(IRCBot):
+class TwitchBot(IRCBot):
     """
-    Sends and receives messages to and from IRC channels.
+    Sends and receives messages to and from Twitch channels.
     """
     def __init__(self, nickname, oauth):
         """
@@ -20,25 +19,32 @@ class QuestBot(IRCBot):
         """
         super().__init__(nickname, oauth)
 
-        # Commands for direct whispers to the bot
-        self.whisper_commands = Commands(exact_match_commands={
-            '!faq': self.faq_whisper,
-            '!gold': self.stats_whisper,
-            '!exp': self.stats_whisper,
-            '!stats': self.stats_whisper,
-            '!prestige': self.try_prestige
-        })
+        self.channel_manager = None
+        self.player_manager = None
+        self.whisper_commands = None
 
+        self.initialize()
+
+    def initialize(self):
         print('Initializing channel manager...')
         self.channel_manager = ChannelManager(self)
+
         print('Initializing player manager...')
         self.player_manager = PlayerManager(self)
+
+        # Commands for direct whispers to the bot
+        self.whisper_commands = Commands()
 
     def connect(self):
         """
         Connect to the IRC server and join the intended channels.
         """
         super().connect()
+
+        # Enable twitch badges/tags
+        self.send_raw_instant('CAP REQ :twitch.tv/tags')
+        # Enable whisper receiving
+        self.send_raw_instant('CAP REQ :twitch.tv/commands')
 
         # Bot should always join the broadcaster's channel
         if settings.BROADCASTER_NAME not in self.channel_manager.channels and (
@@ -52,11 +58,6 @@ class QuestBot(IRCBot):
                 # Join rate-limiting is at a rate of 50 joins per 15 seconds
                 self.send_raw_instant('JOIN #' + channel_name)
                 time.sleep(settings.IRC_JOIN_SLEEP_TIME)
-
-        # Enable twitch badges/tags
-        self.send_raw_instant('CAP REQ :twitch.tv/tags')
-        # Enable whisper receiving
-        self.send_raw_instant('CAP REQ :twitch.tv/commands')
 
     def send_msg(self, channel_name, msg_str):
         """
@@ -74,22 +75,6 @@ class QuestBot(IRCBot):
         """
         # It doesn't matter what channel we use to send whispers, but our own channel is safest
         self.send_msg(self.nickname, '/w {} {}'.format(target_name, msg_str))
-
-    def faq_whisper(self, display_name=None, **_):
-        if not display_name:
-            return
-        self.send_whisper(display_name.lower(),
-                          'Information and an FAQ on Xelabot can be found at: http://github.com/Xelaadryth/Xelabot')
-
-    def stats_whisper(self, display_name=None, **_):
-        if not display_name:
-            return
-        self.player_manager.whisper_stats(display_name.lower())
-
-    def try_prestige(self, display_name=None, **_):
-        if not display_name:
-            return
-        self.player_manager.prestige(display_name.lower())
 
     @staticmethod
     def parse_tags(raw_tags):
@@ -137,7 +122,7 @@ class QuestBot(IRCBot):
         try:
             raw_msg_tokens = raw_msg.split(maxsplit=4)
 
-            display_name, is_mod, is_sub = QuestBot.parse_tags(raw_msg_tokens[0][1:])
+            display_name, is_mod, is_sub = TwitchBot.parse_tags(raw_msg_tokens[0][1:])
 
             # If we fail to get the display name for whatever reason, get it from the raw IRC message
             if display_name is None:

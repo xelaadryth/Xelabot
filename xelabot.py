@@ -2,7 +2,7 @@ import time
 import traceback
 
 import settings
-from twitch.quest_bot import QuestBot
+from quest_bot.quest_bot import QuestBot
 
 
 def run_bot():

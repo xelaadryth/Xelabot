@@ -1,23 +1,20 @@
-import enum
 import random
 
+from .quest_state import QuestState
 import settings
 from utils.commands import Commands
 from utils.timer_thread import TimerThread
 
 
-@enum.unique
-class QuestState(enum.Enum):
-    on_cooldown = 1
-    ready = 2
-    forming_party = 3
-
-
 # TODO: Update this file
-class Quest:
+class QuestManager:
     def __init__(self, channel, bot):
         self.channel = channel
         self.bot = bot
+
+        self.quest = None
+        self.quest_state = QuestState.ready
+        self.commands = Commands(exact_match_commands={'!quest': self.create_party})
 
         self.adventurers = None
         self.main_adventurers = None
@@ -27,6 +24,8 @@ class Quest:
         self.quest_state = None
         # Assign all the values we just declared
         self.ready_quest()
+
+        self.end_quest = None
 
         self.timer = None
 
@@ -41,17 +40,9 @@ class Quest:
             [self.quest_prison, self.quest_escape, self.quest_gates]
         ]
 
-    def ready_quest(self):
-            self.adventurers = []
-            self.main_adventurers = []
-            self.other_adventurers = []
-            self.commands = Commands(exact_match_commands={'!quest': self.create_party})
-            self.adventurer_actions = {}
-            self.quest_state = QuestState.ready
-
-    def update(self):
-        if self.timer is not None and self.timer.is_complete():
-            self.quest_advance()
+    # def update(self):
+    #     if self.timer is not None and self.timer.is_complete():
+    #         self.quest_advance()
 
     def check_commands(self, user, original_msg):
         msg = original_msg.lower()
@@ -68,25 +59,33 @@ class Quest:
 
     def quest_cooldown(self):
         self.commands = {'!quest': self.quest_recharging}
-        self.quest_state = 0
+        self.quest_state = QuestState.on_cooldown
         self.start_timer(self.channel.channel_settings['quest_cooldown'])
 
     def quest_advance(self):
         self.timer = None
 
         # Completed cooldown
-        if self.quest_state == 0:
+        if self.quest_state is QuestState.on_cooldown:
             self.ready_quest()
         # Adventurers gathered and quest beginning
-        elif self.quest_state == 1:
+        elif self.quest_state is QuestState.ready:
             self.start_quest()
-        elif self.quest_state == 2:
+        elif self.quest_state is QuestState.forming_party:
             self.end_quest()
+
+    def ready_quest(self):
+        self.adventurers = []
+        self.main_adventurers = []
+        self.other_adventurers = []
+        self.commands = {'!quest': self.create_party}
+        self.adventurer_actions = {}
+        self.quest_state = QuestState.ready
 
     def start_quest(self):
         self.generate_quest()
 
-        self.quest_state = 2
+        self.quest_state = QuestState.forming_party
         self.start_timer(settings.QUEST_DURATION)
 
     def generate_quest(self):
@@ -108,8 +107,6 @@ class Quest:
             '!quest': self.join_quest
         }
 
-        self.quest_state = 1
-
         self.start_timer(settings.QUEST_DURATION)
 
     def join_quest(self, user, msg):
@@ -128,7 +125,8 @@ class Quest:
         temp_set = set(self.main_adventurers)
         self.other_adventurers = [x for x in self.adventurers if x not in temp_set]
 
-    def list_out_items(self, some_list, join_word='and', prefix=''):
+    @staticmethod
+    def list_out_items(some_list, join_word='and', prefix=''):
         list_length = len(some_list)
         if list_length == 0:
             return 'no one'
