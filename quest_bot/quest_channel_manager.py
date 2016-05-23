@@ -1,7 +1,6 @@
 from copy import deepcopy
 
 from .quest_channel import QuestChannel
-from quests.quest_state import QuestState
 import settings
 from twitch.channel_manager import ChannelManager
 
@@ -29,7 +28,7 @@ class QuestChannelManager(ChannelManager):
         channel = self.channels[channel_name]
         if not channel.channel_settings['quest_enabled']:
             channel.channel_settings['quest_enabled'] = True
-            self.channels[channel_name].quest_manager.quest_advance()
+            self.channels[channel_name].quest_manager.enable_questing()
             self.save_channel(channel_name)
             self.bot.send_msg(channel_name, 'Questing enabled. Type "!quest" to start a quest!')
         else:
@@ -41,8 +40,7 @@ class QuestChannelManager(ChannelManager):
         :param channel_name: str - The owner of the channel who you are changing settings for
         """
         if self.channels[channel_name].channel_settings['quest_enabled']:
-            self.channels[channel_name].quest_manager.kill_timer()
-            self.channels[channel_name].quest_manager.quest_state = QuestState.disabled
+            self.channels[channel_name].quest_manager.disable_questing()
             self.channels[channel_name].channel_settings['quest_enabled'] = False
             self.save_channel(channel_name)
             self.bot.send_msg(channel_name, "Questing disabled.")

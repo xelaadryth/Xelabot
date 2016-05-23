@@ -1,134 +1,44 @@
-import enum
 import random
 
-import settings
 from utils.commands import Commands
-from utils.timer_thread import TimerThread
 
 
-@enum.unique
-class QuestState(enum.Enum):
-    on_cooldown = 1
-    ready = 2
-    forming_party = 3
-
-
-# TODO: Update this file
+# TODO: Implement actual quests in separate files.
 class Quest:
-    def __init__(self, channel, bot):
-        self.channel = channel
-        self.bot = bot
+    def __init__(self, quest_manager):
+        self.quest_manager = quest_manager
+        self.channel = quest_manager.channel
+        self.bot = quest_manager.channel.channel_manager.bot
 
-        self.adventurers = None
-        self.main_adventurers = None
-        self.other_adventurers = None
+        self.party = quest_manager.party
         self.commands = None
-        self.adventurer_actions = None
-        self.quest_state = None
-        # Assign all the values we just declared
-        self.ready_quest()
+        self.quest_stage = -1
 
-        self.timer = None
+        # The different sections of the quest
+        self.quest_stages = []
 
-        # quest_lists takes a number of main_adventurers
-        self.quest_lists = [
-            [],
-            [self.quest_chamber, self.quest_monster],
-            [self.quest_duel, self.quest_archer],
-            [self.quest_escape],
-            [self.quest_prison, self.quest_escape],
-            [self.quest_prison, self.quest_escape, self.quest_gates],
-            [self.quest_prison, self.quest_escape, self.quest_gates]
-        ]
+        self.add_stages()
 
-    def ready_quest(self):
-            self.adventurers = []
-            self.main_adventurers = []
-            self.other_adventurers = []
-            self.commands = Commands(exact_match_commands={'!quest': self.create_party})
-            self.adventurer_actions = {}
-            self.quest_state = QuestState.ready
+    def add_stages(self):
+        raise NotImplementedError('Quest stages not defined.')
 
-    def update(self):
-        if self.timer is not None and self.timer.is_complete():
-            self.quest_advance()
+    def advance(self):
+        self.quest_stage += 1
+        self.quest_stages[self.quest_stage]()
 
-    def check_commands(self, user, original_msg):
-        msg = original_msg.lower()
-        if msg in self.commands:
-            self.commands[msg](user, original_msg)
+    @staticmethod
+    def separate_party(party, num_main_adventurers):
+        main_adventurers = [party[0]]
 
-    def start_timer(self, duration):
-        self.timer = TimerThread(duration, self.quest_advance)
+        main_adventurers += random.sample(party[1:], num_main_adventurers-1)
 
-    def kill_timer(self):
-        if self.timer is not None:
-            self.timer.cancel()
-            self.timer = None
+        temp_set = set(party)
+        other_adventurers = [x for x in party if x not in temp_set]
 
-    def quest_cooldown(self):
-        self.commands = {'!quest': self.quest_recharging}
-        self.quest_state = 0
-        self.start_timer(self.channel.channel_settings['quest_cooldown'])
+        return main_adventurers, other_adventurers
 
-    def quest_advance(self):
-        self.timer = None
-
-        # Completed cooldown
-        if self.quest_state == 0:
-            self.ready_quest()
-        # Adventurers gathered and quest beginning
-        elif self.quest_state == 1:
-            self.start_quest()
-        elif self.quest_state == 2:
-            self.end_quest()
-
-    def start_quest(self):
-        self.generate_quest()
-
-        self.quest_state = 2
-        self.start_timer(settings.QUEST_DURATION)
-
-    def generate_quest(self):
-        # Set the default quest
-        cur_quest = random.choice(self.quest_lists[len(self.adventurers)])
-
-        cur_quest()
-
-    def quest_recharging(self, user, msg):
-        self.channel.send_msg('Sorry ' + user + ', quests take ' +
-                              str(self.channel.channel_settings['quest_cooldown']) + ' seconds to recharge. (' +
-                              str(self.timer.remaining()) + ' seconds remaining.)')
-
-    def create_party(self, user, msg):
-        self.channel.send_msg(user + ' wants to attempt a quest. Type "!quest" to join!')
-        self.adventurers = [user]
-
-        self.commands = {
-            '!quest': self.join_quest
-        }
-
-        self.quest_state = 1
-
-        self.start_timer(settings.QUEST_DURATION)
-
-    def join_quest(self, user, msg):
-        if self.quest_state == 1:
-            if user not in self.adventurers:
-                self.adventurers.append(user)
-                if len(self.adventurers) >= len(self.quest_lists) - 1:
-                    self.kill_timer()
-                    self.quest_advance()
-
-    def separate_main_adventurers(self, num_main_adventurers):
-        self.main_adventurers = [self.adventurers[0]]
-
-        self.main_adventurers += random.sample(self.adventurers[1:], num_main_adventurers-1)
-
-        temp_set = set(self.main_adventurers)
-        self.other_adventurers = [x for x in self.adventurers if x not in temp_set]
-
-    def list_out_items(self, some_list, join_word='and', prefix=''):
+    @staticmethod
+    def list_out_items(some_list, join_word='and', prefix=''):
         list_length = len(some_list)
         if list_length == 0:
             return 'no one'
@@ -150,8 +60,8 @@ class Quest:
     # ==================================================================================================================
 
     def quest_chamber(self):
-        self.separate_main_adventurers(1)
-        self.channel.send_msg('While running from a massive frost troll, ' + self.main_adventurers[0] +
+        main_adventurers, other_adventurers = Quest.separate_party(self.party, 1)
+        self.channel.send_msg('While running from a massive frost troll, ' + main_adventurers[0] +
                               ' finds two doors. Do you take the !left or the !right door?')
         self.commands = {
             '!left': self.quest_chamber_result,
@@ -160,7 +70,7 @@ class Quest:
         self.end_quest = self.quest_chamber_timeout
 
     def quest_chamber_result(self, user, msg):
-        if user in self.main_adventurers:
+        if user in main_adventurers:
             self.kill_timer()
             if bool(random.getrandbits(1)):
                 self.channel.send_msg(user + ' dashes through the door and is immediately swallowed by a giant poro. ' +
@@ -175,18 +85,18 @@ class Quest:
             self.quest_cooldown()
 
     def quest_chamber_timeout(self):
-        self.channel.send_msg(self.main_adventurers[0] + ' hesitated too long, and is nommed to death by the frost ' +
-                              'troll. RIP in peace. ' + self.main_adventurers[0] + ' loses 400 gold.')
-        self.bot.player_manager.add_gold(self.main_adventurers[0], -400)
+        self.channel.send_msg(main_adventurers[0] + ' hesitated too long, and is nommed to death by the frost ' +
+                              'troll. RIP in peace. ' + main_adventurers[0] + ' loses 400 gold.')
+        self.bot.player_manager.add_gold(main_adventurers[0], -400)
 
         self.quest_cooldown()
 
     # ==================================================================================================================
 
     def quest_monster(self):
-        self.separate_main_adventurers(1)
+        main_adventurers, other_adventurers = Quest.separate_party(self.party, 1)
         self.channel.send_msg('In the treasure room of an abandoned ruin, a strange Void creature materializes in ' +
-                              'front of ' + self.main_adventurers[0] + '. Do you !attack or !flee?')
+                              'front of ' + main_adventurers[0] + '. Do you !attack or !flee?')
         self.commands = {
             '!attack': self.quest_monster_attack_result,
             '!flee': self.quest_monster_flee_result
@@ -194,7 +104,7 @@ class Quest:
         self.end_quest = self.quest_monster_timeout
 
     def quest_monster_attack_result(self, user, msg):
-        if user in self.main_adventurers:
+        if user in main_adventurers:
             self.kill_timer()
             level = random.randint(0, 40) + self.bot.player_manager.get_level(user)
             if level < 26:
@@ -216,7 +126,7 @@ class Quest:
             self.quest_cooldown()
 
     def quest_monster_flee_result(self, user, msg):
-        if user in self.main_adventurers:
+        if user in main_adventurers:
             self.kill_timer()
             if bool(random.getrandbits(1)):
                 self.channel.send_msg(user + ' tries to run away but is torn to shreds by blade-like arms. Owie! ' +
@@ -232,11 +142,11 @@ class Quest:
             self.quest_cooldown()
 
     def quest_monster_timeout(self):
-        self.channel.send_msg(self.main_adventurers[0] + ' makes no motion to attack or flee, and instead stands ' +
-                              'motionless in the face of the enemy. ' + self.main_adventurers[0] +
+        self.channel.send_msg(main_adventurers[0] + ' makes no motion to attack or flee, and instead stands ' +
+                              'motionless in the face of the enemy. ' + main_adventurers[0] +
                               ' becomes covered by caustic spittled, digested alive, and slowly devoured. ' +
-                              self.main_adventurers[0] + ' loses 300 gold.')
-        self.bot.player_manager.add_gold(self.main_adventurers[0], -300)
+                              main_adventurers[0] + ' loses 300 gold.')
+        self.bot.player_manager.add_gold(main_adventurers[0], -300)
 
         self.quest_cooldown()
 
@@ -244,13 +154,13 @@ class Quest:
     # ==================================================================================================================
 
     def quest_duel(self):
-        self.separate_main_adventurers(2)
+        main_adventurers, other_adventurers = Quest.separate_party(self.party, 2)
 
         # Randomize the duel word so you can't macro it
         duel_words = ['!attack', '!fight', '!strike', '!slay']
         duel_word = random.choice(duel_words)
 
-        self.channel.send_msg(self.main_adventurers[0] + ' and ' + self.main_adventurers[1] +
+        self.channel.send_msg(main_adventurers[0] + ' and ' + main_adventurers[1] +
                               ' end up in a duel over some loot! The first to type ' + duel_word + ' is the victor!')
         self.commands = {
             duel_word: self.quest_duel_result
@@ -258,10 +168,10 @@ class Quest:
         self.end_quest = self.quest_duel_timeout
 
     def quest_duel_result(self, user, msg):
-        if user in self.main_adventurers:
-            opponent = self.main_adventurers[0]
+        if user in main_adventurers:
+            opponent = main_adventurers[0]
             if user == opponent:
-                opponent = self.main_adventurers[1]
+                opponent = main_adventurers[1]
             self.kill_timer()
             self.channel.send_msg(user + " was quicker on the draw! There's nothing left of " + opponent +
                                   " except a smoking pile of flesh. " + user + " gains 3 exp and steals 300 gold!")
@@ -272,18 +182,18 @@ class Quest:
             self.quest_cooldown()
 
     def quest_duel_timeout(self):
-        self.channel.send_msg(self.main_adventurers[0] + ' and ' + self.main_adventurers[1] +
+        self.channel.send_msg(main_adventurers[0] + ' and ' + main_adventurers[1] +
                               ' are apparently pacifists and neither make a move. Both gain 2 exp!')
-        self.bot.player_manager.add_exp(self.main_adventurers[0], 2)
-        self.bot.player_manager.add_exp(self.main_adventurers[1], 2)
+        self.bot.player_manager.add_exp(main_adventurers[0], 2)
+        self.bot.player_manager.add_exp(main_adventurers[1], 2)
 
         self.quest_cooldown()
 
     # ==================================================================================================================
 
     def quest_archer(self):
-        self.separate_main_adventurers(2)
-        self.channel.send_msg(self.main_adventurers[0] + ' and ' + self.main_adventurers[1] +
+        main_adventurers, other_adventurers = Quest.separate_party(self.party, 2)
+        self.channel.send_msg(main_adventurers[0] + ' and ' + main_adventurers[1] +
                               ' are pinned down by a Noxian archer! One of you go !left and one of you go ' +
                               '!right to flank and defeat him!')
         self.commands = {
@@ -293,7 +203,7 @@ class Quest:
         self.end_quest = self.quest_archer_timeout
 
     def quest_archer_result(self, user, msg):
-        if user in self.main_adventurers and user not in list(self.adventurer_actions.keys()):
+        if user in main_adventurers and user not in list(self.adventurer_actions.keys()):
             self.adventurer_actions[user] = msg[1:].lower()
             if len(self.adventurer_actions) == 2:
                 self.kill_timer()
@@ -301,26 +211,26 @@ class Quest:
 
     def quest_archer_timeout(self):
         if len(self.adventurer_actions) == 2:
-            if self.adventurer_actions[self.main_adventurers[0]] != self.adventurer_actions[self.main_adventurers[1]]:
-                self.channel.send_msg(self.main_adventurers[0] + ' and ' + self.main_adventurers[1] +
+            if self.adventurer_actions[main_adventurers[0]] != self.adventurer_actions[main_adventurers[1]]:
+                self.channel.send_msg(main_adventurers[0] + ' and ' + main_adventurers[1] +
                                       ' successfully flank the archer! Easy games easy life. Both gain 2 exp and ' +
                                       '200 gold.')
-                self.bot.player_manager.add_exp(self.main_adventurers[0], 2)
-                self.bot.player_manager.add_gold(self.main_adventurers[0], 200)
-                self.bot.player_manager.add_exp(self.main_adventurers[1], 2)
-                self.bot.player_manager.add_gold(self.main_adventurers[1], 200)
+                self.bot.player_manager.add_exp(main_adventurers[0], 2)
+                self.bot.player_manager.add_gold(main_adventurers[0], 200)
+                self.bot.player_manager.add_exp(main_adventurers[1], 2)
+                self.bot.player_manager.add_gold(main_adventurers[1], 200)
             else:
-                self.channel.send_msg(self.main_adventurers[0] + ' and ' + self.main_adventurers[1] +
+                self.channel.send_msg(main_adventurers[0] + ' and ' + main_adventurers[1] +
                                       ' apparently suck at coordination and ended up going the same direction. ' +
                                       'At least you got the archer an achievement for a double kill with a single ' +
                                       'arrow! Both of you lose 200 gold.')
-                self.bot.player_manager.add_gold(self.main_adventurers[0], -200)
-                self.bot.player_manager.add_gold(self.main_adventurers[1], -200)
+                self.bot.player_manager.add_gold(main_adventurers[0], -200)
+                self.bot.player_manager.add_gold(main_adventurers[1], -200)
         elif len(self.adventurer_actions) == 1:
             user = list(self.adventurer_actions.keys())[0]
-            other = self.main_adventurers[0]
+            other = main_adventurers[0]
             if user == other:
-                other = self.main_adventurers[1]
+                other = main_adventurers[1]
             self.channel.send_msg(other + " didn't move and just used " + user + ' as a decoy to distract the archer ' +
                                   'while making off with the loot! What a meanie. ' + other +
                                   ' gains 2 exp, 250 gold, ' + user + ' loses 100 gold.')
@@ -328,11 +238,11 @@ class Quest:
             self.bot.player_manager.add_gold(other, 250)
             self.bot.player_manager.add_gold(user, -100)
         else:
-            self.channel.send_msg('Neither ' + self.main_adventurers[0] + ' nor ' + self.main_adventurers[1] +
+            self.channel.send_msg('Neither ' + main_adventurers[0] + ' nor ' + main_adventurers[1] +
                                   ' want to make a move, and eventually both get picked off like sitting ducks. ' +
                                   ' Dumpstered. Both lose 150 gold.')
-            self.bot.player_manager.add_gold(self.main_adventurers[0], -75)
-            self.bot.player_manager.add_gold(self.main_adventurers[1], -75)
+            self.bot.player_manager.add_gold(main_adventurers[0], -75)
+            self.bot.player_manager.add_gold(main_adventurers[1], -75)
 
         self.quest_cooldown()
 
@@ -340,13 +250,13 @@ class Quest:
     # ==================================================================================================================
 
     def quest_escape(self):
-        self.separate_main_adventurers(len(self.adventurers))
+        main_adventurers, other_adventurers = Quest.separate_party(self.party, len(self.adventurers))
 
         # Randomize the duel word so you can't macro it
         escape_words = ['!run', '!flee', '!hide', '!escape']
         escape_word = random.choice(escape_words)
 
-        self.channel.send_msg(self.list_out_items(self.main_adventurers) + ' are all running from an ' +
+        self.channel.send_msg(self.list_out_items(main_adventurers) + ' are all running from an ' +
                               "enraged Vilemaw! Quickly, type " + escape_word + " to get away!")
         self.commands = {
             escape_word: self.quest_escape_result
@@ -354,16 +264,16 @@ class Quest:
         self.end_quest = self.quest_escape_timeout
 
     def quest_escape_result(self, user, msg):
-        if user in self.main_adventurers:
+        if user in main_adventurers:
             self.adventurer_actions[user] = True
 
-            if len(self.adventurer_actions) >= len(self.main_adventurers) - 1:
+            if len(self.adventurer_actions) >= len(main_adventurers) - 1:
                 self.quest_escape_timeout()
 
     def quest_escape_timeout(self):
         escaped = list(self.adventurer_actions.keys())
         temp_set = set(escaped)
-        left_behind = [x for x in self.main_adventurers if x not in temp_set]
+        left_behind = [x for x in main_adventurers if x not in temp_set]
 
         self.channel.send_msg('In the end, ' + self.list_out_items(escaped) + ' managed to escape from Vilemaw ' +
                               'unscathed! Vilemaw munches happily on ' + self.list_out_items(left_behind) +
@@ -433,26 +343,26 @@ class Quest:
     # ==================================================================================================================
 
     def quest_prison(self):
-        self.separate_main_adventurers(1)
-        self.channel.send_msg('In the Castle of the Mad Yordle, ' + self.main_adventurers[0] +
+        main_adventurers, other_adventurers = Quest.separate_party(self.party, 1)
+        self.channel.send_msg('In the Castle of the Mad Yordle, ' + main_adventurers[0] +
                               " stumbles across a prison. But the castle is collapsing and there's only time to " +
-                              "save one! Do you save " + self.list_out_items(self.other_adventurers, 'or', '!') + '?')
-        for adventurer in self.other_adventurers:
+                              "save one! Do you save " + self.list_out_items(other_adventurers, 'or', '!') + '?')
+        for adventurer in other_adventurers:
             adventurer_command = '!' + adventurer
             self.commands[adventurer_command] = self.quest_prison_result
         self.end_quest = self.quest_prison_timeout
 
     def quest_prison_result(self, user, msg):
-        if user in self.main_adventurers:
+        if user in main_adventurers:
             self.kill_timer()
             saved_adventurer = msg[1:].lower()
-            forsaken_adventurers = [x for x in self.other_adventurers if x != saved_adventurer]
+            forsaken_adventurers = [x for x in other_adventurers if x != saved_adventurer]
             self.channel.send_msg(user + ' decided to save ' + saved_adventurer + '! ' +
                                   self.list_out_items(forsaken_adventurers) + ' are left '
                                   'behind and crushed under the rubble of the collapsing castle, losing 50 gold. ' +
                                   user + ' and ' + saved_adventurer + ' gain 4 exp and 350 gold!')
-            self.bot.player_manager.add_exp(self.main_adventurers[0], 4)
-            self.bot.player_manager.add_gold(self.main_adventurers[0], 350)
+            self.bot.player_manager.add_exp(main_adventurers[0], 4)
+            self.bot.player_manager.add_gold(main_adventurers[0], 350)
             self.bot.player_manager.add_exp(saved_adventurer, 4)
             self.bot.player_manager.add_gold(saved_adventurer, 350)
             for forsaken_adventurer in forsaken_adventurers:
@@ -461,11 +371,11 @@ class Quest:
             self.quest_cooldown()
 
     def quest_prison_timeout(self):
-        self.channel.send_msg(self.main_adventurers[0] + ' took too long deciding who to save, and everyone ended ' +
-                              'up crushed by the collapsing castle. ' + self.main_adventurers[0] + ', ' +
-                              self.list_out_items(self.other_adventurers) + ' all lose 75 gold. Ouch.')
-        self.bot.player_manager.add_gold(self.main_adventurers[0], -75)
-        for adventurer in self.other_adventurers:
+        self.channel.send_msg(main_adventurers[0] + ' took too long deciding who to save, and everyone ended ' +
+                              'up crushed by the collapsing castle. ' + main_adventurers[0] + ', ' +
+                              self.list_out_items(other_adventurers) + ' all lose 75 gold. Ouch.')
+        self.bot.player_manager.add_gold(main_adventurers[0], -75)
+        for adventurer in other_adventurers:
             self.bot.player_manager.add_gold(adventurer, -75)
 
         self.quest_cooldown()

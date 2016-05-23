@@ -1,5 +1,6 @@
 import enum
 
+
 @enum.unique
 class QuestState(enum.Enum):
     disabled = 0
