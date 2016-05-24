@@ -1,9 +1,10 @@
 import random
 
 from .quest_state import QuestState
+from .quests import QUEST_LIST
 import settings
-from utils.commands import Commands
-from utils.timer_thread import TimerThread
+from utils.command_set import CommandSet
+from utils.timer_thread import Timer
 
 
 class QuestManager:
@@ -13,37 +14,20 @@ class QuestManager:
     def __init__(self, channel):
         self.channel = channel
 
-        # If we are in a given state and need to advance, call the function specified
-        self.next_quest_event = {
-            QuestState.on_cooldown: self.enable_questing,
-            QuestState.forming_party: self.start_quest,
-            QuestState.active: self.quest.advance
-        }
-
         self.quest = None
         self.party = []
         self.quest_timer = None
         self.quest_state = QuestState.ready
-        self.commands = None
+        self.commands = CommandSet()
         self.enable_questing()
 
-        # The index corresponds to the number of players a quest can take
-        self.quest_lists = [
-            # [],
-            # [self.quest_chamber, self.quest_monster],
-            # [self.quest_duel, self.quest_archer],
-            # [self.quest_escape],
-            # [self.quest_prison, self.quest_escape],
-            # [self.quest_prison, self.quest_escape, self.quest_gates],
-            # [self.quest_prison, self.quest_escape, self.quest_gates]
-        ]
-
-    def start_quest_advance_timer(self, duration):
+    def start_quest_advance_timer(self, duration=settings.QUEST_DURATION):
         """
         Starts a timer until the quest advances.
         :param duration: int - Number of seconds until the current quest advances.
         """
-        self.quest_timer = TimerThread(duration, self.quest_advance)
+        self.kill_quest_advance_timer()
+        self.quest_timer = Timer(duration, self.quest_advance)
 
     def kill_quest_advance_timer(self):
         """
@@ -58,47 +42,50 @@ class QuestManager:
         """
         Enables quest party formation.
         """
+        self.kill_quest_advance_timer()
         self.quest_state = QuestState.ready
-        self.commands = Commands(exact_match_commands={
-            '!quest': lambda **kwargs: self.create_party(kwargs['display_name'])})
+        self.commands = CommandSet(exact_match_commands={
+            '!quest': self.create_party})
 
     def disable_questing(self):
         """
-        Disables quest mode. Any currently running quest is canceled.
+        Disables quest mode. Any currently running quest is canceled. Don't have to clear out instance variables
+        since they will be overwritten by the next quest that is started.
         """
         self.kill_quest_advance_timer()
 
         self.quest_state = QuestState.disabled
-        self.commands = Commands(exact_match_commands={
-            '!quest': lambda **kwargs: self.disabled_message(kwargs['display_name'])})
+        self.commands = CommandSet(exact_match_commands={
+            '!quest': self.disabled_message})
 
     def quest_cooldown(self):
         """
         Puts quest mode on cooldown.
         """
         self.quest_state = QuestState.on_cooldown
-        self.commands = Commands(exact_match_commands={
-            '!quest': lambda **kwargs: self.recharging_message(kwargs['display_name'])})
+        self.commands = CommandSet(exact_match_commands={
+            '!quest': self.recharging_message})
         self.start_quest_advance_timer(self.channel.channel_settings['quest_cooldown'])
 
     def quest_advance(self):
         """
         Advances the current quest.
         """
-        self.kill_quest_advance_timer()
-
-        quest_event = self.next_quest_event[self.quest_state]
-        quest_event()
+        if self.quest_state is QuestState.on_cooldown:
+            self.enable_questing()
+        elif self.quest_state is QuestState.forming_party:
+            self.start_quest()
+        elif self.quest_state is QuestState.active:
+            self.quest.advance()
 
     def start_quest(self):
         """
         Starts a random quest depending on the number of party members.
         """
         self.quest_state = QuestState.active
-        self.quest = random.choice(self.quest_lists[len(self.party)])(self)
+        self.quest = random.choice(QUEST_LIST[len(self.party)])(self)
+        self.commands = CommandSet(children={self.quest.commands})
         self.quest.advance()
-        self.commands = self.quest.commands
-        self.start_quest_advance_timer(settings.QUEST_DURATION)
 
     def disabled_message(self, display_name):
         """
@@ -114,7 +101,7 @@ class QuestManager:
         Tells users that !quest is currently on cooldown.
         :param display_name: str - The user that requested quest mode.
         """
-        self.channel.send_msg('Sorry {}, quests take {} seconds to recharge. ({} seconds remaining.)'.format(
+        self.channel.send_msg('Sorry {}, quest take {} seconds to recharge. ({} seconds remaining.)'.format(
             display_name, self.channel.channel_settings['quest_cooldown'], self.quest_timer.remaining()))
 
     def create_party(self, display_name):
@@ -124,8 +111,8 @@ class QuestManager:
         """
         self.quest_state = QuestState.forming_party
         self.party = [display_name]
-        self.commands = Commands(exact_match_commands={
-            '!quest': lambda **kwargs: self.join_quest(kwargs['display_name'])})
+        self.commands = CommandSet(exact_match_commands={
+            '!quest': self.join_quest})
 
         self.channel.send_msg(display_name + ' wants to attempt a quest. Type "!quest" to join!')
 
@@ -139,5 +126,5 @@ class QuestManager:
         if display_name not in self.party:
             self.party.append(display_name)
             # The index of the quest list is the max number of players, so if we've reached it then start the quest
-            if len(self.party) >= len(self.quest_lists) - 1:
+            if len(self.party) >= len(QUEST_LIST) - 1:
                 self.quest_advance()

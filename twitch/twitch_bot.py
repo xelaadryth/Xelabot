@@ -3,7 +3,7 @@ import traceback
 
 from .channel_manager import ChannelManager
 from.player_manager import PlayerManager
-from utils.commands import Commands
+from utils.command_set import CommandSet
 from utils.irc_bot import IRCBot
 import settings
 
@@ -14,7 +14,7 @@ class TwitchBot(IRCBot):
     """
     def __init__(self, nickname, oauth):
         """
-        :param nickname: str - The bot's username - must be lowercase
+        :param nickname: str - The bot's username
         :param oauth: str - The bot's oauth
         """
         super().__init__(nickname, oauth)
@@ -33,7 +33,7 @@ class TwitchBot(IRCBot):
         self.player_manager = PlayerManager(self)
 
         # Commands for direct whispers to the bot
-        self.whisper_commands = Commands()
+        self.whisper_commands = CommandSet()
 
     def connect(self):
         """
@@ -47,10 +47,10 @@ class TwitchBot(IRCBot):
         self.send_raw_instant('CAP REQ :twitch.tv/commands')
 
         # Bot should always join the broadcaster's channel
-        if settings.BROADCASTER_NAME not in self.channel_manager.channels and (
-                settings.BROADCASTER_NAME != 'your_lowercase_twitch_name'):
+        if settings.BROADCASTER_NAME.lower() not in self.channel_manager.channels and (
+                settings.BROADCASTER_NAME != 'Your_Twitch_Name'):
             print('Adding broadcaster to channel data...')
-            self.channel_manager.add_channel(settings.BROADCASTER_NAME)
+            self.channel_manager.add_channel(settings.BROADCASTER_NAME.lower())
 
         for channel_name, channel in self.channel_manager.channels.items():
             if channel.channel_settings['auto_join']:
@@ -73,6 +73,7 @@ class TwitchBot(IRCBot):
         :param target_name: str - The user to whisper
         :param msg_str: str - The message to whisper
         """
+        target_name = target_name.lower()
         # It doesn't matter what channel we use to send whispers, but our own channel is safest
         self.send_msg(self.nickname, '/w {} {}'.format(target_name, msg_str))
 
@@ -185,7 +186,7 @@ class TwitchBot(IRCBot):
             print('Invalid whisper target: {}'.format(whisper_target))
             return
 
-        self.whisper_commands.execute_command(msg, display_name=display_name)
+        self.whisper_commands.execute_command(display_name, msg)
 
     def handle_msg(self, raw_msg):
         """

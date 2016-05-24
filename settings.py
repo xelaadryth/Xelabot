@@ -3,8 +3,8 @@ import os
 ########################################################################################################################
 #  Required settings; add these immediately!
 ########################################################################################################################
-BROADCASTER_NAME = "your_lowercase_twitch_name"
-BOT_NAME = "bot_lowercase_twitch_name"
+BROADCASTER_NAME = "Your_Twitch_Name"
+BOT_NAME = "Twitch_Bot_Name"
 BOT_OAUTH = "oauth:bot_oauth_code"
 
 ########################################################################################################################

@@ -22,7 +22,7 @@ class QuestChannelManager(ChannelManager):
 
     def enable_quest(self, channel_name):
         """
-        Enables the ability to start quests in the current channel.
+        Enables the ability to start quest in the current channel.
         :param channel_name: str - The owner of the channel who you are changing settings for
         """
         channel = self.channels[channel_name]
@@ -36,7 +36,7 @@ class QuestChannelManager(ChannelManager):
 
     def disable_quest(self, channel_name):
         """
-        Disables the ability to start quests in the current channel.
+        Disables the ability to start quest in the current channel.
         :param channel_name: str - The owner of the channel who you are changing settings for
         """
         if self.channels[channel_name].channel_settings['quest_enabled']:
@@ -49,7 +49,7 @@ class QuestChannelManager(ChannelManager):
 
     def set_quest_cooldown(self, channel_name, cooldown):
         """
-        Set the cooldown for going on quests.
+        Set the cooldown for going on quest.
         :param channel_name: str - The owner of the channel who you are changing settings for
         :param cooldown: int - The number of seconds you must wait before going on another quest.
         """

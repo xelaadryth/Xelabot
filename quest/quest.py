@@ -1,30 +1,38 @@
 import random
 
-from utils.commands import Commands
+from utils.command_set import CommandSet
 
 
-# TODO: Implement actual quests in separate files.
 class Quest:
     def __init__(self, quest_manager):
         self.quest_manager = quest_manager
-        self.channel = quest_manager.channel
-        self.bot = quest_manager.channel.channel_manager.bot
 
         self.party = quest_manager.party
-        self.commands = None
-        self.quest_stage = -1
+        self.commands = CommandSet()
 
-        # The different sections of the quest
-        self.quest_stages = []
+        self.started = False
 
-        self.add_stages()
-
-    def add_stages(self):
-        raise NotImplementedError('Quest stages not defined.')
+        # Quest segment ordering
+        self.starting_segment = None
+        self.current_segment = None
+        self.next_segment = None
 
     def advance(self):
-        self.quest_stage += 1
-        self.quest_stages[self.quest_stage]()
+        self.commands.clear_children()
+
+        # Create the next segment of the quest as needed
+        if not self.started:
+            self.started = True
+            # noinspection PyCallingNonCallable
+            self.current_segment = self.starting_segment(self)
+            self.current_segment.play()
+        elif self.next_segment:
+            # noinspection PyCallingNonCallable
+            self.current_segment = self.next_segment(self)
+            self.next_segment = None
+            self.current_segment.play()
+        else:
+            self.quest_manager.quest_cooldown()
 
     @staticmethod
     def separate_party(party, num_main_adventurers):
@@ -58,101 +66,6 @@ class Quest:
     # ============================================== QUESTS BELOW ======================================================
     # ==================================================================================================================
     # ==================================================================================================================
-
-    def quest_chamber(self):
-        main_adventurers, other_adventurers = Quest.separate_party(self.party, 1)
-        self.channel.send_msg('While running from a massive frost troll, ' + main_adventurers[0] +
-                              ' finds two doors. Do you take the !left or the !right door?')
-        self.commands = {
-            '!left': self.quest_chamber_result,
-            '!right': self.quest_chamber_result
-        }
-        self.end_quest = self.quest_chamber_timeout
-
-    def quest_chamber_result(self, user, msg):
-        if user in main_adventurers:
-            self.kill_timer()
-            if bool(random.getrandbits(1)):
-                self.channel.send_msg(user + ' dashes through the door and is immediately swallowed by a giant poro. ' +
-                                      user + ' loses 150 gold.')
-                self.bot.player_manager.add_gold(user, -150)
-            else:
-                self.channel.send_msg(user + ' opens the door and discovers a treasure chest! ' + user +
-                                      ' gains 3 exp and gains 300 gold.')
-                self.bot.player_manager.add_exp(user, 3)
-                self.bot.player_manager.add_gold(user, 300)
-
-            self.quest_cooldown()
-
-    def quest_chamber_timeout(self):
-        self.channel.send_msg(main_adventurers[0] + ' hesitated too long, and is nommed to death by the frost ' +
-                              'troll. RIP in peace. ' + main_adventurers[0] + ' loses 400 gold.')
-        self.bot.player_manager.add_gold(main_adventurers[0], -400)
-
-        self.quest_cooldown()
-
-    # ==================================================================================================================
-
-    def quest_monster(self):
-        main_adventurers, other_adventurers = Quest.separate_party(self.party, 1)
-        self.channel.send_msg('In the treasure room of an abandoned ruin, a strange Void creature materializes in ' +
-                              'front of ' + main_adventurers[0] + '. Do you !attack or !flee?')
-        self.commands = {
-            '!attack': self.quest_monster_attack_result,
-            '!flee': self.quest_monster_flee_result
-        }
-        self.end_quest = self.quest_monster_timeout
-
-    def quest_monster_attack_result(self, user, msg):
-        if user in main_adventurers:
-            self.kill_timer()
-            level = random.randint(0, 40) + self.bot.player_manager.get_level(user)
-            if level < 26:
-                self.channel.send_msg(user + ' charges towards the Void creature and gets immediately vaporized by ' +
-                                      'lazers. Pew Pew! ' + user + ' loses 175 gold.')
-                self.bot.player_manager.add_gold(user, -175)
-            elif level < 40:
-                self.channel.send_msg(user + ' manages to slay the Void creature after a long struggle and some ' +
-                                      'celebratory crumpets. ' + user + ' gains 3 exp and 275 gold.')
-                self.bot.player_manager.add_exp(user, 3)
-                self.bot.player_manager.add_gold(user, 275)
-            else:
-                self.channel.send_msg(user + ' dismembers the Void creature with almost surgical precision, ' +
-                                      'and even discovers a new class of alien organ. Hurrah! ' + user +
-                                      ' gains 2 exp and 400 gold.')
-                self.bot.player_manager.add_exp(user, 2)
-                self.bot.player_manager.add_gold(user, 400)
-
-            self.quest_cooldown()
-
-    def quest_monster_flee_result(self, user, msg):
-        if user in main_adventurers:
-            self.kill_timer()
-            if bool(random.getrandbits(1)):
-                self.channel.send_msg(user + ' tries to run away but is torn to shreds by blade-like arms. Owie! ' +
-                                      user + ' loses 75 gold.')
-                self.bot.player_manager.add_gold(user, -75)
-            else:
-                self.channel.send_msg(user + ' manages to bravely run away in the face of overwhelming power, ' +
-                                      'and even manages to snatch a few coins on the way out! ' + user +
-                                      ' gains 2 exp and 160 gold.')
-                self.bot.player_manager.add_exp(user, 2)
-                self.bot.player_manager.add_gold(user, 160)
-
-            self.quest_cooldown()
-
-    def quest_monster_timeout(self):
-        self.channel.send_msg(main_adventurers[0] + ' makes no motion to attack or flee, and instead stands ' +
-                              'motionless in the face of the enemy. ' + main_adventurers[0] +
-                              ' becomes covered by caustic spittled, digested alive, and slowly devoured. ' +
-                              main_adventurers[0] + ' loses 300 gold.')
-        self.bot.player_manager.add_gold(main_adventurers[0], -300)
-
-        self.quest_cooldown()
-
-    # ==================================================================================================================
-    # ==================================================================================================================
-
     def quest_duel(self):
         main_adventurers, other_adventurers = Quest.separate_party(self.party, 2)
 

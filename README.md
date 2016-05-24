@@ -2,14 +2,14 @@
 A game in the form of a Twitch chat bot.
 
 ## To Do List:
-- Fix and refactor existing tech
-- Update README instructions on Dropbox
-- Move timers off of threads
 - Set cooldown sets timer as well
+- Translate old quests
+- Single channel
 - Modifiable settings text file
 - Freeze to .exe
 - Auto-update script
-- All quest commands whispered
+- All quest commands can take whispers (as optional setting?)
+- Update README instructions on Dropbox
 - https://tmi.twitch.tv/group/user/USERNAME_HERE/chatters to check current viewers for loyalty bumps
 - Raid quest
 - Multi-bot communication whisper hash handshake (bot names combined hash to value) and bot storage

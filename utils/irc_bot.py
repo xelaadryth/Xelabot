@@ -1,8 +1,8 @@
 import socket
 import time
 
-from utils.commands import Commands
-from utils.timer_thread import TimerThread
+from utils.command_set import CommandSet
+from utils.timer_thread import Timer
 import settings
 
 
@@ -12,18 +12,11 @@ class IRCBot:
     """
     def __init__(self, nickname, oauth):
         """
-        :param nickname: str - The bot's username - must be lowercase
+        :param nickname: str - The bot's username
         :param oauth: str - The bot's oauth
         """
         self.nickname = nickname
         self.oauth = oauth
-
-        # Initializing commands from generic IRC messages
-        self.irc_commands = Commands(starts_with_commands={
-            'ping': lambda **kwargs: self.send_pong(kwargs['command'].split()[1]),
-            ':tmi.twitch.tv notice * :error logging in': lambda **_: self.login_failure(),
-            ':tmi.twitch.tv notice * :login unsuccessful': lambda **_: self.login_failure()
-        })
 
         # Initializing socket
         self.irc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -80,7 +73,6 @@ class IRCBot:
         print('Connecting to IRC service...')
         self.irc_sock.connect((settings.IRC_SERVER, settings.IRC_PORT))
         self.send_raw_instant('PASS ' + self.oauth)
-        self.send_raw_instant('USER {0} {0} {0} :{0}'.format(self.nickname))
         self.send_raw_instant('NICK ' + self.nickname)
 
     def send_pong(self, server):
@@ -106,7 +98,12 @@ class IRCBot:
         if raw_msg:
             print(raw_msg)
 
-        self.irc_commands.execute_command(raw_msg)
+        lower_msg = raw_msg.lower()
+
+        if lower_msg.startswith('ping '):
+            self.send_pong(raw_msg.split()[1])
+        elif lower_msg in [':tmi.twitch.tv notice * :error logging in', ':tmi.twitch.tv notice * :login unsuccessful']:
+            self.login_failure()
 
     def run(self):
         """
@@ -114,7 +111,7 @@ class IRCBot:
         """
         while True:
             # Check to see if any timers completed and activate their callbacks
-            TimerThread.check_timers()
+            Timer.check_timers()
 
             raw_msgs = self.recv_raw()
 

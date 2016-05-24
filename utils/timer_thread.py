@@ -1,7 +1,7 @@
-import threading
+import time
 
 
-class TimerThread:
+class Timer:
     """
     A timer that can be canceled.
     """
@@ -11,43 +11,18 @@ class TimerThread:
         self.callback = callback
 
         # When we're done we set this
-        self.complete_event = threading.Event()
+        self.start_time = time.time()
+        self.duration = duration
 
-        # If we want to cancel the thread, we set this
-        self.cancel_event = threading.Event()
-
-        # Making self.time_left thread-safe with a mutex
-        self.lock = threading.Lock()
-        self.time_left = duration
-
-        # Start the thread
-        self.thread = threading.Thread(target=self.run_timer)
-        self.thread.daemon = True
-        self.thread.start()
-
-        TimerThread.active_timers.add(self)
-
-    def run_timer(self):
-        """
-        The thread's execution; based on wake-able sleeps and thus not that accurate.
-        """
-        self.lock.acquire()
-        while self.time_left > 0 and not self.cancel_event.is_set():
-            self.lock.release()
-            # If the stop event gets set we wake up immediately
-            self.cancel_event.wait(1)
-            self.lock.acquire()
-            self.time_left -= 1
-        self.lock.release()
-        self.complete_event.set()
+        Timer.active_timers.add(self)
 
     def is_complete(self):
         """
-        If timer completes successfully, calls the callback given to it. Note that this happens in the main thread, not
-        the created daemon thread.
-        :return: bool - True if the timer has ticked to 0 or has been canceled
+        Tells you if the timer has completed.
+        :return: Function - The Function callback specified at creation if the timer has finished, or
+                            None if the timer has not yet completed
         """
-        if self.complete_event.is_set() and not self.cancel_event.set():
+        if self.start_time + self.duration < time.time():
             return self.callback
 
         return None
@@ -55,17 +30,18 @@ class TimerThread:
     @staticmethod
     def check_timers():
         """
-        Check to see if any timers completed and activate their callbacks and remove ones that are completed or stopped.
+        Check to see if any timers completed and activate their callbacks and remove ones that are completed.
+        Then, run all timer callbacks that have completed successfully.
         """
         callbacks = []
         remaining_timers = set()
-        for timer in TimerThread.active_timers:
+        for timer in Timer.active_timers:
             callback = timer.is_complete()
             if callback:
                 callbacks.append(callback)
             else:
                 remaining_timers.add(timer)
-        TimerThread.active_timers = remaining_timers
+        Timer.active_timers = remaining_timers
 
         for callback in callbacks:
             callback()
@@ -74,25 +50,19 @@ class TimerThread:
         """
         Cancel the timer.
         """
-        self.cancel_event.set()
-        TimerThread.active_timers.remove(self)
-        self.thread.join()
+        Timer.active_timers.discard(self)
 
     def remaining(self):
         """
         Get the remaining timer time.
-        :return: int - The remaining time
+        :return: int - The remaining time in seconds
         """
-        self.lock.acquire()
-        time_left = self.time_left
-        self.lock.release()
-        return time_left
+        return int(self.start_time + self.duration - time.time())
 
     def set(self, duration):
         """
-        Set the remaining timer time.
-        :param duration: int - How much time to set the timer to
+        Resets the timer with a new duration.
+        :param duration: float - How much time to set the timer to
         """
-        self.lock.acquire()
-        self.time_left = duration
-        self.lock.release()
+        self.start_time = time.time()
+        self.duration = duration

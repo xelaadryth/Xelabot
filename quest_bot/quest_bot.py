@@ -1,6 +1,6 @@
 from .quest_channel_manager import QuestChannelManager
 from .quest_player_manager import QuestPlayerManager
-from utils.commands import Commands
+from utils.command_set import CommandSet
 from twitch.twitch_bot import TwitchBot
 
 
@@ -10,7 +10,7 @@ class QuestBot(TwitchBot):
     """
     def __init__(self, nickname, oauth):
         """
-        :param nickname: str - The bot's username - must be lowercase
+        :param nickname: str - The bot's username
         :param oauth: str - The bot's oauth
         """
         super().__init__(nickname, oauth)
@@ -23,7 +23,7 @@ class QuestBot(TwitchBot):
         self.player_manager = QuestPlayerManager(self)
 
         # Commands for direct whispers to the bot
-        self.whisper_commands = Commands(exact_match_commands={
+        self.whisper_commands = CommandSet(exact_match_commands={
             '!faq': self.faq_whisper,
             '!gold': self.stats_whisper,
             '!exp': self.stats_whisper,
@@ -31,18 +31,18 @@ class QuestBot(TwitchBot):
             '!prestige': self.try_prestige
         })
 
-    def faq_whisper(self, display_name=None, **_):
+    def faq_whisper(self, display_name):
         if not display_name:
             return
-        self.send_whisper(display_name.lower(),
+        self.send_whisper(display_name,
                           'Information and an FAQ on Xelabot can be found at: http://github.com/Xelaadryth/Xelabot')
 
-    def stats_whisper(self, display_name=None, **_):
+    def stats_whisper(self, display_name):
         if not display_name:
             return
-        self.player_manager.whisper_stats(display_name.lower())
+        self.player_manager.whisper_stats(display_name)
 
-    def try_prestige(self, display_name=None, **_):
+    def try_prestige(self, display_name):
         if not display_name:
             return
-        self.player_manager.prestige(display_name.lower())
+        self.player_manager.prestige(display_name)
