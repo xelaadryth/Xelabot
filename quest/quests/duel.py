@@ -35,20 +35,21 @@ class Start(QuestSegment):
         self.timeout_advance(Timeout)
 
     def attack(self, display_name):
-        if display_name in self.quest.party:
-            winner = display_name
-            loser = self.quest.party[0] if self.quest.party[0] != winner else self.quest.party[1]
+        if display_name not in self.quest.party:
+            return
 
-            gold = GOLD_REWARD + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
+        winner = display_name
+        loser = self.quest.party[0] if self.quest.party[0] != winner else self.quest.party[1]
 
-            self.channel.send_msg(
-                '{0} was quicker on the draw! There\'s nothing left of {1} but a smoking pile of flesh. '
-                '{0} gains {2} exp and steals {3} gold from {1}!'.format(winner, loser, EXP_REWARD, gold))
-            self.player_manager.add_exp(winner, EXP_REWARD)
-            self.player_manager.add_gold(winner, gold)
-            self.player_manager.remove_gold(loser, gold)
+        gold = GOLD_REWARD + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
 
-            self.complete_quest()
+        self.channel.send_msg(
+            '{0} was quicker on the draw! There\'s nothing left of {1} but a smoking pile of flesh. '
+            '{0} steals {2} gold from {1} and gains {3} exp!'.format(winner, loser, gold, EXP_REWARD))
+        self.reward(winner, gold=gold, exp=EXP_REWARD)
+        self.penalize(loser, gold=gold)
+
+        self.complete_quest()
 
 
 class Timeout(QuestSegment):
@@ -56,7 +57,6 @@ class Timeout(QuestSegment):
         self.channel.send_msg(
             '{0} and {1} are apparently pacifists and neither raises a weapon. Both gain {2} exp!'.format(
                 self.quest.party[0]), self.quest.party[1], EXP_PACIFIST_REWARD)
-        self.player_manager.add_exp(self.quest.party[0], EXP_PACIFIST_REWARD)
-        self.player_manager.add_exp(self.quest.party[1], EXP_PACIFIST_REWARD)
+        self.reward(self.quest.party, exp=EXP_PACIFIST_REWARD)
 
         self.complete_quest()

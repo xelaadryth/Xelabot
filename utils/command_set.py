@@ -26,7 +26,7 @@ class CommandSet:
         """
         split_command = full_command.split(maxsplit=1)
         command = split_command[0].lower()
-        params = split_command[1:]
+        params = split_command[1] if len(split_command) == 2 else ''
 
         try:
             if command in self.exact_match_commands:

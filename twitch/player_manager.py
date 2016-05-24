@@ -12,10 +12,10 @@ class PlayerManager:
 
     # When a player entry is missing, create and save it
     class PlayerDict(dict):
-        @staticmethod
-        def __missing__(key):
+        def __missing__(self, key):
             value = copy.deepcopy(PlayerManager.default_player)
             value['name'] = key
+            self['name'] = value
             PlayerManager.save_player_data(key, value)
             return value
 
@@ -53,6 +53,7 @@ class PlayerManager:
         Saves a specific player's data to persistent storage.
         :param username: str - The player whose data you want to save
         """
+        username = username.lower()
         player = self.players[username]
 
         self.save_player_data(username, player)

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from copy import deepcopy
 
 import settings
@@ -11,20 +12,21 @@ class QuestPlayerManager(PlayerManager):
         self.default_player.update({
             'exp': 0,
             'prestige': 0,
-            'gold': 0
+            'gold': 0,
+            'items': defaultdict(lambda: 0)
         })
         super().__init__(bot)
 
     # When a player entry is missing, create and save it
     class PlayerDict(dict):
-        @staticmethod
-        def __missing__(key):
+        def __missing__(self, key):
             value = deepcopy(QuestPlayerManager.default_player)
             value['name'] = key
+            self['name'] = value
             QuestPlayerManager.save_player_data(key, value)
             return value
 
-    def add_gold(self, username, gold, prestige_benefits=True):
+    def __add_gold(self, username, gold, prestige_benefits=True):
         """
         Gives gold to the specified player.
         :param username: str - The player who you are modifying
@@ -40,16 +42,103 @@ class QuestPlayerManager(PlayerManager):
         self.players[username]['gold'] += gold
         if self.players[username]['gold'] < 0:
             self.players[username]['gold'] = 0
-        self.save_player(username)
 
-    def remove_gold(self, username, gold, prestige_benefits=True):
+    def add_gold(self, username, gold, prestige_benefits=True):
         """
-        Removes gold from the specified player.
+        Gives gold to the specified player.
         :param username: str - The player who you are modifying
         :param gold: float - How much gold to give that player
         :param prestige_benefits: bool - Whether this gold increase is affected by prestige bonuses
         """
-        self.add_gold(username, -gold, prestige_benefits)
+        self.__add_gold(username, gold, prestige_benefits=prestige_benefits)
+        self.save_player(username)
+
+    def __add_exp(self, username, exp):
+        """
+        Gives exp to the specified player.
+        :param username: str - The player who you are modifying
+        :param exp: float - How much exp to give that player
+        """
+        username = username.lower()
+        self.players[username]['exp'] += exp
+
+    def add_exp(self, username, exp):
+        """
+        Gives exp to the specified player.
+        :param username: str - The player who you are modifying
+        :param exp: float - How much exp to give that player
+        """
+        self.__add_exp(username, exp)
+        self.save_player(username)
+
+    def __add_item(self, username, item):
+        """
+        Item to give to the specified player.
+        :param item: str - The name of the item we are giving to the player
+        """
+        username = username.lower()
+        self.players[username]['items'][item] += 1
+
+    def add_item(self, username, item):
+        """
+        Item to give to the specified player.
+        :param item: str - The name of the item we are giving to the player
+        """
+        self.__add_item(username, item)
+        self.save_player(username)
+
+    def __remove_item(self, username, item):
+        """
+        Item to take from the specified player.
+        :param item: str - The name of the item we are taking from the player
+        """
+        username = username.lower()
+        self.players[username]['items'][item] -= 1
+
+        if self.players[username]['items'][item] <= 0:
+            del self.players[username]['items'][item]
+
+    def remove_item(self, username, item):
+        """
+        Item to take from the specified player.
+        :param item: str - The name of the item we are taking from the player
+        """
+        self.__remove_item(username, item)
+        self.save_player(username)
+
+    def __reward(self, username, gold=0, exp=0, item=None, prestige_benefits=True):
+        """
+        Gives gold and exp to the specified player.
+        :param username: str - The player who you are modifying
+        :param gold: float - How much gold to give that player
+        :param exp: float - How much exp to give that player
+        """
+        self.__add_gold(username, gold, prestige_benefits=prestige_benefits)
+        self.__add_exp(username, exp)
+        if item:
+            self.__add_item(username, item)
+
+    def reward(self, username, gold=0, exp=0, item=None, prestige_benefits=True):
+        """
+        Gives gold and exp to the specified player.
+        :param username: str - The player who you are modifying
+        :param gold: float - How much gold to give that player
+        :param exp: float - How much exp to give that player
+        """
+        self.__reward(username, gold=gold, exp=exp, item=item, prestige_benefits=prestige_benefits)
+        self.save_player(username)
+
+    def penalize(self, username, gold=0, exp=0, item=None, prestige_benefits=True):
+        """
+        Gives gold and exp to the specified player.
+        :param username: str - The player who you are modifying
+        :param gold: float - How much gold to give that player
+        :param exp: float - How much exp to give that player
+        """
+        self.__reward(username, gold=-gold, exp=-exp, item=None, prestige_benefits=prestige_benefits)
+        if item:
+            self.__remove_item(username, item)
+        self.save_player(username)
 
     def get_gold(self, username):
         """
@@ -58,16 +147,6 @@ class QuestPlayerManager(PlayerManager):
         """
         username = username.lower()
         return self.players[username]['gold']
-
-    def add_exp(self, username, exp):
-        """
-        Gives exp to the specified player.
-        :param username: str - The player who you are modifying
-        :param exp: float - How much exp to give that player
-        """
-        username = username.lower()
-        self.players[username]['exp'] += exp
-        self.save_player(username)
 
     def get_exp(self, username):
         """

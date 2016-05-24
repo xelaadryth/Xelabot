@@ -182,7 +182,7 @@ class TwitchBot(IRCBot):
         """
         display_name, whisper_target, msg, is_mod, is_sub = self.parse_msg(raw_msg)
 
-        if whisper_target != self.nickname:
+        if whisper_target != self.nickname.lower():
             print('Invalid whisper target: {}'.format(whisper_target))
             return
 
