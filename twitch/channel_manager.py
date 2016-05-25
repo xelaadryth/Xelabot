@@ -42,6 +42,7 @@ class ChannelManager:
         Saves a specific channel to persistent storage.
         :param username: str - The owner of the channel you want to save
         """
+        username = username.lower()
         channel = self.channels[username]
 
         with open(os.path.join(
@@ -53,28 +54,40 @@ class ChannelManager:
         Adds a new channel to the ChannelManager.
         :param username: str - The owner of the channel you want to add
         """
+        username = username.lower()
         if username not in self.channels:
             channel_settings = copy.deepcopy(self.default_settings)
             channel_settings['name'] = username.lower()
             self.channels[username] = self.channel_type(channel_settings['name'], channel_settings, self)
             self.save_channel(username)
         else:
-            self.channels[username].enable_auto_join()
+            self.enable_auto_join(username)
 
-    def delete_channel(self, username):
+    def join_channel(self, username):
+        """
+        Joins a new channel and adds it to the ChannelManager.
+        :param username: str - The channel you want to join and add
+        """
+        username = username.lower()
+        self.add_channel(username)
+        self.bot.send_raw('JOIN #' + username)
+
+    def leave_channel(self, username):
         """
         Turns off auto_join in persistent storage. Does not delete stored data.
         :param username: str - The owner of the channel you want to remove
         """
-        if username in self.channels.keys():
-            self.disable_auto_join(username)
+        username = username.lower()
+        self.disable_auto_join(username)
+        self.bot.send_raw('PART #' + username)
 
     def reset_channel(self, username):
         """
         Resets a channel back to default settings. Loses all stored data forever and irreversibly!
         :param username: str - The owner of the channel whose data you wish to reset
         """
-        self.channels.pop(username)
+        username = username.lower()
+        self.channels.pop(username, None)
         self.add_channel(username)
 
     def enable_auto_join(self, channel_name):
@@ -82,7 +95,9 @@ class ChannelManager:
         Bot will join the given channel on bot startup.
         :param channel_name: str - The owner of the channel who you are changing settings for
         """
-        self.channels[channel_name].channel_settings['auto_join'] = True
+        channel_name = channel_name.lower()
+        if channel_name in self.channels:
+            self.channels[channel_name].channel_settings['auto_join'] = True
         self.save_channel(channel_name)
 
     def disable_auto_join(self, channel_name):
@@ -90,5 +105,7 @@ class ChannelManager:
         Bot will not join the given channel anymore.
         :param channel_name: str - The owner of the channel who you are changing settings for
         """
-        self.channels[channel_name].channel_settings['auto_join'] = False
-        self.save_channel(channel_name)
+        channel_name = channel_name.lower()
+        if channel_name in self.channels:
+            self.channels[channel_name].channel_settings['auto_join'] = False
+            self.save_channel(channel_name)

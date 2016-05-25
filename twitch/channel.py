@@ -1,3 +1,4 @@
+import settings
 from utils.command_set import CommandSet
 
 
@@ -8,6 +9,10 @@ class Channel:
         self.channel_manager = channel_manager
 
         self.mod_commands = CommandSet()
+        self.commands = CommandSet(exact_match_commands={
+            '!requestjoin': self.request_join,
+            '!requestleave': self.request_leave
+        })
 
     def send_msg(self, msg):
         """
@@ -34,6 +39,28 @@ class Channel:
         else:
             if self.mod_commands.has_command(msg):
                 self.channel_manager.bot.send_whisper(display_name, 'That\'s a mod-only command.')
+
+        self.commands.execute_command(display_name, msg)
+
+    def request_join(self, display_name):
+        """
+        Requests the bot to join their channel.
+        :param display_name: str - User requesting the bot to join
+        """
+        if settings.ENABLE_REQUEST_JOIN:
+            self.channel_manager.join_channel(display_name.lower())
+            self.send_msg('{} has now joined {}\'s channel.'.format(settings.BOT_NAME, display_name))
+        else:
+            self.send_msg('This command is disabled for this bot. Ask the broadcaster {} to re-enable it.'.format(
+                settings.BROADCASTER_NAME))
+
+    def request_leave(self, display_name):
+        """
+        Requests the bot to leave their channel.
+        :param display_name: str - User requesting the bot to leave
+        """
+        self.channel_manager.leave_channel(display_name.lower())
+        self.send_msg('{} has now left {}\'s channel.'.format(settings.BOT_NAME, display_name))
 
         # TODO: Add back in loyalty commands with https://tmi.twitch.tv/group/user/USERNAME_HERE/chatters
         # Check loyalty commands

@@ -62,3 +62,7 @@ class QuestChannelManager(ChannelManager):
         self.save_channel(channel_name)
 
         channel.send_msg('Channel cooldown set to {} seconds.'.format(cooldown))
+
+        quest_timer = channel.quest_manager.quest_timer
+        if quest_timer and cooldown < quest_timer.remaining():
+            quest_timer.set(cooldown)

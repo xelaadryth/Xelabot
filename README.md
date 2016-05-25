@@ -2,8 +2,7 @@
 A game in the form of a Twitch chat bot.
 
 ## To Do List:
-- Set cooldown sets timer as well
-- Single channel
+- Translate last quest
 - Modifiable settings text file
 - Freeze to .exe
 - Auto-update script

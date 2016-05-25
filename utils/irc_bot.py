@@ -1,7 +1,6 @@
 import socket
 import time
 
-from utils.command_set import CommandSet
 from utils.timer_thread import Timer
 import settings
 
@@ -51,7 +50,7 @@ class IRCBot:
             total_data = buf
 
             if not buf:
-                    raise Exception('Socket connection broken.')
+                raise Exception('Socket connection broken.')
 
             # Keep trying to pull until there's nothing left.
             while len(buf) == settings.IRC_RECV_SIZE:

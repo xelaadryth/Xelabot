@@ -46,14 +46,13 @@ class TwitchBot(IRCBot):
         # Enable whisper receiving
         self.send_raw_instant('CAP REQ :twitch.tv/commands')
 
-        # Bot should always join the broadcaster's channel
-        if settings.BROADCASTER_NAME.lower() not in self.channel_manager.channels and (
-                settings.BROADCASTER_NAME != 'Your_Twitch_Name'):
-            print('Adding broadcaster to channel data...')
-            self.channel_manager.add_channel(settings.BROADCASTER_NAME.lower())
+        # Bot should always join its own channel and the broadcaster's channel
+        self.channel_manager.join_channel(settings.BOT_NAME)
+        self.channel_manager.join_channel(settings.BROADCASTER_NAME)
 
         for channel_name, channel in self.channel_manager.channels.items():
-            if channel.channel_settings['auto_join']:
+            if channel_name not in [settings.BROADCASTER_NAME.lower(), settings.BOT_NAME.lower()] and (
+                    channel.channel_settings['auto_join']):
                 print('Joining channel: {}...'.format(channel_name))
                 # Join rate-limiting is at a rate of 50 joins per 15 seconds
                 self.send_raw_instant('JOIN #' + channel_name)
