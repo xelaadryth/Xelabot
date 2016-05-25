@@ -1,3 +1,4 @@
+import settings
 from utils.command_set import CommandSet
 
 
@@ -8,29 +9,20 @@ class Quest:
         self.party = quest_manager.party
         self.commands = CommandSet()
 
-        self.started = False
-
         # Quest segment ordering
         self.starting_segment = None
         self.current_segment = None
-        self.next_segment = None
 
-    def advance(self):
+    def advance(self, next_segment=None):
         self.commands.clear_children()
 
         # Create the next segment of the quest as needed
-        if not self.started:
-            self.started = True
-            # noinspection PyCallingNonCallable
-            self.current_segment = self.starting_segment(self)
-            self.current_segment.play()
-        elif self.next_segment:
-            # noinspection PyCallingNonCallable
-            self.current_segment = self.next_segment(self)
-            self.next_segment = None
+        if next_segment:
+            self.current_segment = next_segment(self)
+            self.quest_manager.start_quest_advance_timer(settings.QUEST_DURATION)
             self.current_segment.play()
         else:
-            self.quest_manager.quest_cooldown()
+            self.current_segment.timeout()
 
     # ==================================================================================================================
     # ==================================================================================================================

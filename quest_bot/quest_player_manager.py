@@ -22,7 +22,7 @@ class QuestPlayerManager(PlayerManager):
         def __missing__(self, key):
             value = deepcopy(QuestPlayerManager.default_player)
             value['name'] = key
-            self['name'] = value
+            self[key] = value
             QuestPlayerManager.save_player_data(key, value)
             return value
 

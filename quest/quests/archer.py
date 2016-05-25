@@ -39,8 +39,6 @@ class Start(QuestSegment):
             )
         )
 
-        self.timeout_advance(Timeout)
-
     def move(self, display_name, direction):
         # Has to be a new player to be valid input
         if display_name not in self.quest.party or display_name == self.quest.first_player:
@@ -75,9 +73,7 @@ class Start(QuestSegment):
             self.quest.first_player = display_name
             self.quest.first_action = direction
 
-
-class Timeout(QuestSegment):
-    def play(self):
+    def timeout(self):
         if self.quest.first_action:
             loser = self.quest.party[0] if self.quest.party[0] != self.quest.first_player else self.quest.party[1]
             gold_gained = GOLD_REWARD_BIG + randint(-GOLD_VARIANCE, GOLD_VARIANCE)

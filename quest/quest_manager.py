@@ -85,7 +85,7 @@ class QuestManager:
         self.quest_state = QuestState.active
         self.quest = random.choice(QUEST_LIST[len(self.party)])(self)
         self.commands = CommandSet(children={self.quest.commands})
-        self.quest.advance()
+        self.quest.advance(self.quest.starting_segment)
 
     def disabled_message(self, display_name):
         """

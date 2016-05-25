@@ -49,8 +49,6 @@ class Start(QuestSegment):
             )
         )
 
-        self.timeout_advance(Timeout)
-
     def escape(self, display_name):
         # Has to be a new player to be valid input
         if display_name not in self.quest.party or display_name in self.quest.escaped:
@@ -59,7 +57,32 @@ class Start(QuestSegment):
         self.quest.escaped.append(display_name)
 
         if len(self.quest.escaped) == len(self.quest.party) - 1:
-            self.advance(Timeout)
+            self.timeout()
+
+    def timeout(self):
+        # Some people are left behind
+        if self.quest.escaped:
+            self.captured()
+        else:
+            self.advance(BossBattle)
+
+    def captured(self):
+        losers = set(self.quest.party) - set(self.quest.escaped)
+
+        gold_gained = GOLD_REWARD + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
+        gold_lost = GOLD_PENALTY + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
+
+        self.channel.send_msg(
+            'In the end, {0} managed to escape from {1} unscathed! {1} happily munches on {2} with terrifying '
+            'crunches, snaps, and some odd purring noises. Those that escaped gain {3} gold and {4} exp, '
+            'while those left behind lose {5} gold.'.format(
+                self.list_out_items(self.quest.escaped), MONSTER_NAME, losers, gold_gained, EXP_REWARD, gold_lost
+            )
+        )
+        self.reward(self.quest.escaped, gold=gold_gained, exp=EXP_REWARD)
+        self.penalize(losers, gold=gold_lost)
+
+        self.complete_quest()
 
 
 class BossBattle(QuestSegment):
@@ -77,7 +100,6 @@ class BossBattle(QuestSegment):
                 self.list_out_items(self.quest.party), MONSTER_NAME
             )
         )
-        self.timeout_advance(Defeat)
 
     def attack(self, display_name, direction):
         # Has to be a new player to be valid input
@@ -90,7 +112,7 @@ class BossBattle(QuestSegment):
         if len(self.quest.attacked_sides) == 3:
             self.battle()
         elif len(self.quest.attacking_players) == len(self.quest.party):
-            self.advance(Defeat)
+            self.timeout()
 
     def battle(self):
         level = randint(-LEVEL_VARIANCE, LEVEL_VARIANCE) + self.sum_levels(self.quest.attacking_players)
@@ -128,9 +150,7 @@ class BossBattle(QuestSegment):
 
         self.complete_quest()
 
-
-class Defeat(QuestSegment):
-    def play(self):
+    def timeout(self):
         gold = GOLD_PENALTY + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
 
         self.channel.send_msg(
@@ -141,32 +161,5 @@ class Defeat(QuestSegment):
             )
         )
         self.penalize(self.quest.party, gold=gold)
-
-        self.complete_quest()
-
-
-class Timeout(QuestSegment):
-    def play(self):
-        # Some people are left behind
-        if self.quest.escaped:
-            self.captured()
-        else:
-            self.advance(BossBattle)
-
-    def captured(self):
-        losers = set(self.quest.party) - set(self.quest.escaped)
-
-        gold_gained = GOLD_REWARD + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
-        gold_lost = GOLD_PENALTY + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
-
-        self.channel.send_msg(
-            'In the end, {0} managed to escape from {1} unscathed! {1} happily munches on {2} with terrifying '
-            'crunches, snaps, and some odd purring noises. Those that escaped gain {3} gold and {4} exp, '
-            'while those left behind lose {5} gold.'.format(
-                self.list_out_items(self.quest.escaped), MONSTER_NAME, losers, gold_gained, EXP_REWARD, gold_lost
-            )
-        )
-        self.reward(self.quest.escaped, gold=gold_gained, exp=EXP_REWARD)
-        self.penalize(losers, gold=gold_lost)
 
         self.complete_quest()

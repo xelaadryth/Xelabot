@@ -37,7 +37,6 @@ class Start(QuestSegment):
             '{} are defending an Avorosan town from a Frostguard invasion! Split up and defend the '
             '!north, !south, !east, and !west gates!'.format(self.list_out_items(self.quest.party))
         )
-        self.timeout_advance(Timeout)
 
     def guard(self, display_name, direction):
         # Has to be a new player to be valid input
@@ -50,7 +49,7 @@ class Start(QuestSegment):
         if len(self.quest.defended_sides) == 4:
             self.successful_defense()
         elif len(self.quest.guarding_players) == len(self.quest.party):
-            self.advance(Timeout)
+            self.timeout()
 
     def successful_defense(self):
         gold = GOLD_REWARD + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
@@ -63,9 +62,7 @@ class Start(QuestSegment):
 
         self.complete_quest()
 
-
-class Timeout(QuestSegment):
-    def play(self):
+    def timeout(self):
         if len(self.quest.guarding_players) == 0:
             gold = GOLD_REWARD_BIG + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
 

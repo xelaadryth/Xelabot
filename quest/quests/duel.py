@@ -32,8 +32,6 @@ class Start(QuestSegment):
             '{} and {} end up in a duel over some loot! The first to {} will be the victor!'.format(
                 self.quest.party[0], self.quest.party[1], self.quest.duel_word))
 
-        self.timeout_advance(Timeout)
-
     def attack(self, display_name):
         if display_name not in self.quest.party:
             return
@@ -51,9 +49,7 @@ class Start(QuestSegment):
 
         self.complete_quest()
 
-
-class Timeout(QuestSegment):
-    def play(self):
+    def timeout(self):
         self.channel.send_msg(
             '{0} and {1} are apparently pacifists and neither raises a weapon. Both gain {2} exp!'.format(
                 self.quest.party[0]), self.quest.party[1], EXP_PACIFIST_REWARD)

@@ -39,8 +39,6 @@ class Start(QuestSegment):
             'In the treasure room of an abandoned ruin, a strange Void creature materializes in front of {}. '
             'Do you !attack or !flee?'.format(self.quest.party[0]))
 
-        self.timeout_advance(Timeout)
-
     def attack(self, display_name):
         if display_name not in self.quest.party:
             return
@@ -93,9 +91,7 @@ class Start(QuestSegment):
 
         self.complete_quest()
 
-
-class Timeout(QuestSegment):
-    def play(self):
+    def timeout(self):
         self.channel.send_msg(
             '{0} makes no motion to attack or flee, and instead stands motionless in the face of the enemy. '
             '{0} becomes covered by caustic spittle, digested alive, and slowly devoured. '

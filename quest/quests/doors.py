@@ -30,8 +30,6 @@ class Start(QuestSegment):
             'While running from a massive frost troll, {} finds two doors. '
             'Do you take the !left or the !right door?'.format(self.quest.party[0]))
 
-        self.timeout_advance(Timeout)
-
     def enter(self, display_name):
         if display_name not in self.quest.party:
             return
@@ -49,9 +47,7 @@ class Start(QuestSegment):
 
         self.complete_quest()
 
-
-class Timeout(QuestSegment):
-    def play(self):
+    def timeout(self):
         self.channel.send_msg(
             '{0} hesitated too long, and is nommed to death by the frost troll. RIP in peace. '
             '{0} loses {1} gold.'.format(self.quest.party[0]), GOLD_TIMEOUT_PENALTY)
