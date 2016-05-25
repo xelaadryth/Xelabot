@@ -91,7 +91,7 @@ class Start(QuestSegment):
             gold = GOLD_PENALTY_WAIT + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
             self.channel.send_msg(
                 'Neither {0} nor {1} want to make a move, and eventually both get picked off like sitting ducks. Rekt.'
-                'Both lose {2} gold.'.format(self.quest.party[0], self.quest.party[1])
+                'Both lose {2} gold.'.format(self.quest.party[0], self.quest.party[1], GOLD_PENALTY)
             )
             self.penalize(self.quest.party, gold)
 

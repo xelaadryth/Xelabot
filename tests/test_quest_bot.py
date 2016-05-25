@@ -27,7 +27,7 @@ class TestQuestBot(unittest.TestCase):
         self.bot.send_pong = pong_mock
         self.bot.handle_msg('PING :some.server.com')
 
-        self.assertEqual(pong_mock.call_count, 1, 'Unsuccessful login not handled.')
+        self.assertEqual(pong_mock.call_count, 1, 'Pong not sent after receiving ping.')
 
 
 if __name__ == '__main__':

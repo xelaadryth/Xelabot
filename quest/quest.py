@@ -34,7 +34,7 @@ class Quest:
     #     main_adventurers, other_adventurers = Quest.separate_party(self.party, 1)
     #     self.channel.send_msg('In the Castle of the Mad Yordle, ' + main_adventurers[0] +
     #                           " stumbles across a prison. But the castle is collapsing and there's only time to " +
-    #                           "save one! Do you save " + self.list_out_items(other_adventurers, 'or', '!') + '?')
+    #                           "save one! Do you save " + list_to_string(other_adventurers, 'or', '!') + '?')
     #     for adventurer in other_adventurers:
     #         adventurer_command = '!' + adventurer
     #         self.commands[adventurer_command] = self.quest_prison_result
@@ -46,7 +46,7 @@ class Quest:
     #         saved_adventurer = msg[1:].lower()
     #         forsaken_adventurers = [x for x in other_adventurers if x != saved_adventurer]
     #         self.channel.send_msg(user + ' decided to save ' + saved_adventurer + '! ' +
-    #                               self.list_out_items(forsaken_adventurers) + ' are left '
+    #                               list_to_string(forsaken_adventurers) + ' are left '
     #                               'behind and crushed under the rubble of the collapsing castle, losing 50 gold. ' +
     #                               user + ' and ' + saved_adventurer + ' gain 4 exp and 350 gold!')
     #         self.bot.player_manager.add_exp(main_adventurers[0], 4)
@@ -61,7 +61,7 @@ class Quest:
     # def quest_prison_timeout(self):
     #     self.channel.send_msg(main_adventurers[0] + ' took too long deciding who to save, and everyone ended ' +
     #                           'up crushed by the collapsing castle. ' + main_adventurers[0] + ', ' +
-    #                           self.list_out_items(other_adventurers) + ' all lose 75 gold. Ouch.')
+    #                           list_to_string(other_adventurers) + ' all lose 75 gold. Ouch.')
     #     self.bot.player_manager.add_gold(main_adventurers[0], -75)
     #     for adventurer in other_adventurers:
     #         self.bot.player_manager.add_gold(adventurer, -75)

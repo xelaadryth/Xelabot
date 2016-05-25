@@ -6,6 +6,27 @@ from twitch.player_manager import PlayerManager
 
 
 class QuestPlayerManager(PlayerManager):
+    """
+    Functions like add_gold perform a raw store action and then save. __add_gold is the raw store action in this case.
+    Properties of raw store actions:
+        - Call username.lower()
+        - Touch self.players with that name
+        - Do not save to file
+
+    Properties of store actions:
+        - Do nothing other than call a raw action and then save
+
+    Some actions can also take a list of elements. These are all of the form:
+
+    def foo(username **kwargs):
+        if not (isinstance(username), str):
+            for user in username:
+                foo(username, **kwargs)
+        else:
+            ORIGINAL FUNCTION BODY
+
+    Note that both store actions and raw store actions qualify for this.
+    """
     default_player = deepcopy(PlayerManager.default_player)
 
     def __init__(self, bot):
@@ -74,15 +95,22 @@ class QuestPlayerManager(PlayerManager):
     def __add_item(self, username, item):
         """
         Item to give to the specified player.
-        :param item: str - The name of the item we are giving to the player
+        :param username: str - The player who you are modifying
+        :param item: str or list<str> - The name of the item(s) we are giving to the player
         """
-        username = username.lower()
-        self.players[username]['items'][item] += 1
+        if not isinstance(item, str):
+            # We must be a list of items
+            for single_item in item:
+                self.__add_item(username, single_item)
+        else:
+            username = username.lower()
+            self.players[username]['items'][item] += 1
 
     def add_item(self, username, item):
         """
         Item to give to the specified player.
-        :param item: str - The name of the item we are giving to the player
+        :param username: str - The player who you are modifying
+        :param item: str or list<str> - The name of the item(s) we are giving to the player
         """
         self.__add_item(username, item)
         self.save_player(username)
@@ -90,18 +118,25 @@ class QuestPlayerManager(PlayerManager):
     def __remove_item(self, username, item):
         """
         Item to take from the specified player.
-        :param item: str - The name of the item we are taking from the player
+        :param username: str - The player who you are modifying
+        :param item: str or list<str> - The name of the item(s) we are giving to the player
         """
-        username = username.lower()
-        self.players[username]['items'][item] -= 1
+        if not isinstance(item, str):
+            # We must be a list of items
+            for single_item in item:
+                self.__remove_item(username, single_item)
+        else:
+            username = username.lower()
+            self.players[username]['items'][item] -= 1
 
-        if self.players[username]['items'][item] <= 0:
-            del self.players[username]['items'][item]
+            if self.players[username]['items'][item] <= 0:
+                del self.players[username]['items'][item]
 
     def remove_item(self, username, item):
         """
         Item to take from the specified player.
-        :param item: str - The name of the item we are taking from the player
+        :param username: str - The player who you are modifying
+        :param item: str or list<str> - The name of the item(s) we are giving to the player
         """
         self.__remove_item(username, item)
         self.save_player(username)
@@ -113,32 +148,61 @@ class QuestPlayerManager(PlayerManager):
         :param gold: float - How much gold to give that player
         :param exp: float - How much exp to give that player
         """
-        self.__add_gold(username, gold, prestige_benefits=prestige_benefits)
-        self.__add_exp(username, exp)
-        if item:
-            self.__add_item(username, item)
+        if not isinstance(username, str):
+            # We must be a list of users
+            for user in username:
+                self.__reward(user, gold=gold, exp=exp, item=item, prestige_benefits=prestige_benefits)
+        else:
+            self.__add_gold(username, gold, prestige_benefits=prestige_benefits)
+            self.__add_exp(username, exp)
+            if item:
+                self.__add_item(username, item)
 
     def reward(self, username, gold=0, exp=0, item=None, prestige_benefits=True):
         """
-        Gives gold and exp to the specified player.
-        :param username: str - The player who you are modifying
+        Gives gold and exp to the specified player(s).
+        :param username: str or list<str> - The player(s) who you are modifying
         :param gold: float - How much gold to give that player
         :param exp: float - How much exp to give that player
         """
-        self.__reward(username, gold=gold, exp=exp, item=item, prestige_benefits=prestige_benefits)
-        self.save_player(username)
+        if not isinstance(username, str):
+            # We must be a list of users
+            for user in username:
+                self.reward(user, gold=gold, exp=exp, item=item, prestige_benefits=prestige_benefits)
+        else:
+            self.__reward(username, gold=gold, exp=exp, item=item, prestige_benefits=prestige_benefits)
+            self.save_player(username)
+
+    def __penalize(self, username, gold=0, exp=0, item=None, prestige_benefits=True):
+        """
+        Gives gold and exp to the specified player(s).
+        :param username: str or list<str> - The player(s) who you are modifying
+        :param gold: float - How much gold to give that player
+        :param exp: float - How much exp to give that player
+        """
+        if not isinstance(username, str):
+            # We must be a list of users
+            for user in username:
+                self.__penalize(user, gold=gold, exp=exp, item=item, prestige_benefits=prestige_benefits)
+        else:
+            self.__reward(username, gold=-gold, exp=-exp, item=None, prestige_benefits=prestige_benefits)
+            if item:
+                self.__remove_item(username, item)
 
     def penalize(self, username, gold=0, exp=0, item=None, prestige_benefits=True):
         """
-        Gives gold and exp to the specified player.
-        :param username: str - The player who you are modifying
+        Gives gold and exp to the specified player(s).
+        :param username: str or list<str> - The player(s) who you are modifying
         :param gold: float - How much gold to give that player
         :param exp: float - How much exp to give that player
         """
-        self.__reward(username, gold=-gold, exp=-exp, item=None, prestige_benefits=prestige_benefits)
-        if item:
-            self.__remove_item(username, item)
-        self.save_player(username)
+        if not isinstance(username, str):
+            # We must be a list of users
+            for user in username:
+                self.penalize(user, gold=gold, exp=exp, item=item, prestige_benefits=prestige_benefits)
+        else:
+            self.__penalize(username, gold=gold, exp=exp, item=item, prestige_benefits=prestige_benefits)
+            self.save_player(username)
 
     def get_gold(self, username):
         """
@@ -169,6 +233,14 @@ class QuestPlayerManager(PlayerManager):
             if exp < exp_req or level == settings.LEVEL_CAP:
                 return level
 
+    def get_items(self, username):
+        """
+        Gets the items of a given player.
+        :param username: str - The player who you are modifying
+        """
+        username = username.lower()
+        return self.players[username]['items']
+
     def prestige(self, username):
         """
         Prestige advances a player.
@@ -197,3 +269,20 @@ class QuestPlayerManager(PlayerManager):
             'Prestige: {}, '.format(player['prestige']) if player['prestige'] else '',
             self.get_level(username), player['exp'], player['gold'])
         self.bot.send_whisper(username, msg)
+
+    def save_player(self, username):
+        """
+        Saves a specific player's data to persistent storage. Deletes items with quantity 0 or less.
+        :param username: str - The player whose data you want to save
+        """
+        username = username.lower()
+
+        # Remove duplicate items. Doesn't use a dict comprehension because items is a custom dict type
+        remove_items = []
+        for item, quantity in self.players[username]['items'].items():
+            if quantity <= 0:
+                remove_items.append(item)
+        for remove_item in remove_items:
+            del self.players[username]['items'][remove_item]
+
+        super().save_player(username)

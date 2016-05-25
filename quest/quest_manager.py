@@ -74,16 +74,17 @@ class QuestManager:
         if self.quest_state is QuestState.on_cooldown:
             self.enable_questing()
         elif self.quest_state is QuestState.forming_party:
-            self.start_quest()
+            self.start_quest(random.choice(QUEST_LIST[len(self.party)])(self))
         elif self.quest_state is QuestState.active:
             self.quest.advance()
 
-    def start_quest(self):
+    def start_quest(self, quest):
         """
         Starts a random quest depending on the number of party members.
+        :param quest: Quest - The quest that we are preparing
         """
         self.quest_state = QuestState.active
-        self.quest = random.choice(QUEST_LIST[len(self.party)])(self)
+        self.quest = quest
         self.commands = CommandSet(children={self.quest.commands})
         self.quest.advance(self.quest.starting_segment)
 

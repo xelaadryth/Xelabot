@@ -52,7 +52,7 @@ class Start(QuestSegment):
     def timeout(self):
         self.channel.send_msg(
             '{0} and {1} are apparently pacifists and neither raises a weapon. Both gain {2} exp!'.format(
-                self.quest.party[0]), self.quest.party[1], EXP_PACIFIST_REWARD)
+                self.quest.party[0], self.quest.party[1], EXP_PACIFIST_REWARD))
         self.reward(self.quest.party, exp=EXP_PACIFIST_REWARD)
 
         self.complete_quest()

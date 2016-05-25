@@ -1,4 +1,4 @@
-import random
+from random import randint, getrandbits
 
 from ..quest import Quest
 from ..quest_segment import QuestSegment
@@ -34,23 +34,23 @@ class Start(QuestSegment):
         if display_name not in self.quest.party:
             return
 
-        gold = GOLD_REWARD + random.randint(-GOLD_VARIANCE, GOLD_VARIANCE)
+        gold = GOLD_REWARD + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
 
-        if bool(random.getrandbits(1)):
-            self.channel.send_msg('{0} dashes through the door and is immediately swallowed by a giant poro. '
-                                  '{0} loses {1} gold.'.format(display_name, gold))
-            self.penalize(display_name, gold=gold)
-        else:
+        if bool(getrandbits(1)):
             self.channel.send_msg('{0} opens the door and discovers a treasure chest! '
                                   '{0} gains {1} gold and gains {2} exp.'.format(display_name, gold, EXP_REWARD))
             self.reward(display_name, gold=gold, exp=EXP_REWARD)
+        else:
+            self.channel.send_msg('{0} dashes through the door and is immediately swallowed by a giant poro. '
+                                  '{0} loses {1} gold.'.format(display_name, gold))
+            self.penalize(display_name, gold=gold)
 
         self.complete_quest()
 
     def timeout(self):
         self.channel.send_msg(
             '{0} hesitated too long, and is nommed to death by the frost troll. RIP in peace. '
-            '{0} loses {1} gold.'.format(self.quest.party[0]), GOLD_TIMEOUT_PENALTY)
+            '{0} loses {1} gold.'.format(self.quest.party[0], GOLD_TIMEOUT_PENALTY))
         self.penalize(self.quest.party[0], gold=GOLD_TIMEOUT_PENALTY)
 
         self.complete_quest()

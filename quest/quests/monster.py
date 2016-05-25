@@ -62,6 +62,7 @@ class Start(QuestSegment):
             self.channel.send_msg(
                 '{0} manages to slay the Void creature after a long struggle and some celebratory crumpets. '
                 '{0} gains {1} gold and {2} exp.'.format(display_name, gold, EXP_RISKY_REWARD))
+            self.reward(display_name, gold=gold, exp=EXP_RISKY_REWARD)
         else:
             gold = GOLD_RISKY_REWARD_BIG + randint(GOLD_VARIANCE_RISKY, GOLD_VARIANCE_RISKY)
             self.channel.send_msg(
@@ -79,15 +80,15 @@ class Start(QuestSegment):
         gold = GOLD_SAFE_REWARD + randint(-GOLD_VARIANCE_SAFE, GOLD_VARIANCE_SAFE)
 
         if bool(getrandbits(1)):
-            self.channel.send_msg('{0} tries to run away but is torn to shreds by blade-like arms. Owie! '
-                                  '{0} loses {1} gold.'.format(display_name, gold))
-            self.penalize(display_name, gold=gold)
-        else:
             self.channel.send_msg(
                 '{0} manages to bravely run away in the face of overwhelming power, '
                 'and even manages to snatch a few coins on the way out! '
                 '{0} gains {1} gold and {2} exp.'.format(display_name, gold, EXP_SAFE_REWARD))
             self.reward(display_name, gold=gold, exp=EXP_SAFE_REWARD)
+        else:
+            self.channel.send_msg('{0} tries to run away but is torn to shreds by blade-like arms. Owie! '
+                                  '{0} loses {1} gold.'.format(display_name, gold))
+            self.penalize(display_name, gold=gold)
 
         self.complete_quest()
 
