@@ -7,14 +7,15 @@ from utils.irc_bot import IRCBot
 
 class TestQuestBot(unittest.TestCase):
     def setUp(self):
-        self.bot = IRCBot('BotName', 'oauth:something')
+        self.socket_mock = MagicMock()
+        with patch('utils.irc_bot.socket.socket', return_value=self.socket_mock):
+            self.bot = IRCBot('BotName', 'oauth:something')
 
     def test_login(self):
-        self.bot.irc_sock = MagicMock()
         self.bot.connect()
 
-        self.assertEquals(self.bot.irc_sock.connect.call_count, 1, 'Never tried connecting.')
-        self.assertGreater(self.bot.irc_sock.send.call_count, 0, 'Login info not sent properly.')
+        self.assertEqual(self.socket_mock.connect.call_count, 1, 'Never tried connecting.')
+        self.assertGreater(self.socket_mock.send.call_count, 0, 'Login info not sent properly.')
 
     @patch.object(IRCBot, 'login_failure')
     def test_invalid_login(self, login_failure_mock):

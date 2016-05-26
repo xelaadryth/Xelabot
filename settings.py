@@ -12,6 +12,9 @@ BOT_OAUTH = "oauth:bot_oauth_code"
 ########################################################################################################################
 QUEST_DEFAULT_COOLDOWN = 90
 
+# Lets other people use a shared instance of your bot in their channel; disable if bot gets laggy
+ENABLE_REQUEST_JOIN = True
+
 ########################################################################################################################
 # Core settings; probably shouldn't change these
 ########################################################################################################################
@@ -37,9 +40,10 @@ PLAYER_DATA_PATH = os.path.join(DATA_PATH, 'players')
 # Game settings
 EXP_LEVELS = [0, 3, 7, 12, 18, 25, 33, 42, 52, 63,
               75, 88, 102, 117, 133, 150, 168, 187, 207, 228,
-              250, 273, 297, 322, 348, 375, 403, 432, 462, 493]
+              250, 273, 297, 322, 348, 375, 403, 432, 462, 493,
+              0]
 LEVEL_CAP = 30
 PRESTIGE_COST = 30000
 PRESTIGE_GOLD_AMP = 0.05
 # How long there is for user interaction between quest advance sections
-QUEST_DURATION = 15
+QUEST_DURATION = 12
