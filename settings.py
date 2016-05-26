@@ -43,11 +43,9 @@ IRC_JOIN_SLEEP_TIME = 0.35
 ########################################################################################################################
 # Local file paths
 ########################################################################################################################
-DATA_PATH = 'data'
-DATABASE_FILE = 'data.db'
+PLAYER_DB_FILE = 'player.db'
+CHANNEL_DB_FILE = 'channel.db'
 SETTINGS_FILENAME = 'settings.txt'
-CHANNEL_DATA_PATH = os.path.join(DATA_PATH, 'channels')
-PLAYER_DATA_PATH = os.path.join(DATA_PATH, 'players')
 
 ########################################################################################################################
 # Quest settings

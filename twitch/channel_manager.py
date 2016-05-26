@@ -33,7 +33,7 @@ class ChannelManager:
     def __init__(self, bot):
         self.bot = bot
         self.channels = self.ChannelDict(self)
-        self.channel_db = SqliteDict(settings.DATABASE_FILE, tablename='channels', autocommit=True)
+        self.channel_db = SqliteDict(settings.CHANNEL_DB_FILE, tablename='channels', autocommit=True)
 
         self.initialized = False
         self.load_settings_from_db()

@@ -31,7 +31,7 @@ class PlayerManager:
     def __init__(self, bot):
         self.bot = bot
         self.players = self.PlayerDict(self)
-        self.player_db = SqliteDict(settings.DATABASE_FILE, tablename='players', autocommit=True)
+        self.player_db = SqliteDict(settings.PLAYER_DB_FILE, tablename='players', autocommit=True)
 
         self.initialized = False
         self.load_player_stats_from_db()
@@ -52,7 +52,6 @@ class PlayerManager:
         :param username: str - The player whose data you want to save
         :param data: dict - The player data you are saving
         """
-        data['items'] = dict(data['items'])
         self.player_db[username] = data
 
     def save_player(self, username):
