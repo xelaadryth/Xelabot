@@ -17,8 +17,7 @@ class TestMonster(unittest.TestCase):
         self.channel = MagicMock()
         self.channel.channel_manager.bot.player_manager = self.player_manager
         self.starting_gold = 1000
-        # Equal to monster level due to off-by-one
-        self.starting_exp = settings.EXP_LEVELS[monster.MONSTER_LEVEL-1]
+        self.starting_exp = settings.EXP_LEVELS[monster.MONSTER_LEVEL]
 
         self.player1 = 'Player1'
         self.party = [self.player1]

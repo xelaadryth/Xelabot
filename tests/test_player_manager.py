@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from quest_bot.quest_player_manager import QuestPlayerManager
+import settings
 
 
 @patch('twitch.player_manager.PlayerManager.save_player_data')
@@ -17,6 +18,16 @@ class TestPlayerManager(unittest.TestCase):
 
         with patch('twitch.player_manager.PlayerManager.save_player_data'):
             self.player_manager.add_gold(self.existing_player, 256)
+
+    def test_exp_to_level(self, _):
+        self.assertEqual(self.player_manager.exp_to_level(0), 1)
+        self.assertEqual(self.player_manager.exp_to_level(settings.EXP_LEVELS[1]), 1)
+        self.assertEqual(self.player_manager.exp_to_level(settings.EXP_LEVELS[5]), 5)
+        self.assertEqual(self.player_manager.exp_to_level(settings.EXP_LEVELS[settings.LEVEL_CAP]), settings.LEVEL_CAP)
+        self.assertEqual(self.player_manager.exp_to_level(settings.EXP_LEVELS[settings.LEVEL_CAP] + 1),
+                         settings.LEVEL_CAP)
+        self.assertEqual(self.player_manager.exp_to_level(settings.EXP_LEVELS[settings.LEVEL_CAP] + 9999999),
+                         settings.LEVEL_CAP)
 
     def test_default_player(self, _):
         self.assertEqual(self.player_manager.get_gold(self.existing_player), 256)
@@ -38,9 +49,19 @@ class TestPlayerManager(unittest.TestCase):
         self.assertEqual(self.player_manager.get_gold(self.new_player), 0)
         self.assertEqual(self.player_manager.get_exp(self.new_player), 0)
 
-    def test_prestige_gold(self, _):
+    def test_prestige(self, _):
         self.assertFalse(self.player_manager.prestige(self.new_player))
-        self.player_manager.players[self.new_player.lower()]['prestige'] = 1
+        self.assertEqual(self.player_manager.get_prestige(self.new_player), 0)
+
+        self.player_manager.reward(self.new_player, gold=settings.PRESTIGE_COST,
+                                   exp=settings.EXP_LEVELS[settings.LEVEL_CAP], )
+        self.player_manager.prestige(self.new_player)
+
+        self.assertEqual(self.player_manager.get_prestige(self.new_player), 1)
+        self.assertEqual(self.player_manager.get_gold(self.new_player), 0)
+        self.assertEqual(self.player_manager.get_exp(self.new_player), 0)
+
+        # Check gold increase rate bonus
         self.player_manager.add_gold(self.new_player, 128)
         self.assertGreater(self.player_manager.get_gold(self.new_player), 128)
 

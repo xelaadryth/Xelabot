@@ -1,7 +1,8 @@
 from .quest_channel_manager import QuestChannelManager
 from .quest_player_manager import QuestPlayerManager
-from utils.command_set import CommandSet
+import settings
 from twitch.twitch_bot import TwitchBot
+from utils.command_set import CommandSet
 
 
 class QuestBot(TwitchBot):
@@ -46,4 +47,14 @@ class QuestBot(TwitchBot):
     def try_prestige(self, display_name):
         if not display_name:
             return
-        self.player_manager.prestige(display_name)
+        if self.player_manager.prestige(display_name):
+            self.send_whisper(
+                display_name, 'You have been reset to level 1 and lost {} gold, but are now prestige level {}!'.format(
+                    self.player_manager.get_gold(display_name), self.player_manager.get_prestige()
+                ))
+        else:
+            self.send_whisper(
+                display_name, 'Unable to prestige. You must be level {} and have {} gold to spend.'.format(
+                    settings.LEVEL_CAP, settings.PRESTIGE_COST
+                )
+            )

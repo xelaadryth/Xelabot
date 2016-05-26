@@ -45,11 +45,11 @@ CHANNEL_DATA_PATH = os.path.join(DATA_PATH, 'channels')
 PLAYER_DATA_PATH = os.path.join(DATA_PATH, 'players')
 
 # Game settings
-EXP_LEVELS = [0, 3, 7, 12, 18, 25, 33, 42, 52, 63,
-              75, 88, 102, 117, 133, 150, 168, 187, 207, 228,
-              250, 273, 297, 322, 348, 375, 403, 432, 462, 493,
-              0]
-LEVEL_CAP = 30
+EXP_LEVELS = [-1,
+              0,   3,   7,   12,  18,  25,  33,  42,  52,  63,
+              75,  88,  102, 117, 133, 150, 168, 187, 207, 228,
+              250, 273, 297, 322, 348, 375, 403, 432, 462, 493]
+LEVEL_CAP = len(EXP_LEVELS) - 1
 PRESTIGE_COST = 30000
 PRESTIGE_GOLD_AMP = 0.05
 # How long there is for user interaction between quest advance sections

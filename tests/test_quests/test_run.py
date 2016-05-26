@@ -19,7 +19,7 @@ class TestRun(unittest.TestCase):
         self.channel.channel_manager.bot.player_manager = self.player_manager
         self.starting_gold = 1000
         # Everyone is max level
-        self.starting_exp = settings.EXP_LEVELS[settings.LEVEL_CAP-1]
+        self.starting_exp = settings.EXP_LEVELS[settings.LEVEL_CAP]
 
         self.level_difference3 = run.MONSTER_LEVEL - (3 * settings.LEVEL_CAP)
         self.level_difference4 = run.MONSTER_LEVEL - (4 * settings.LEVEL_CAP)

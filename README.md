@@ -12,6 +12,7 @@ A game in the form of a Twitch chat bot.
  - version.txt (A file whose only contents is a string of settings.VERSION)
 
 ## To Do List:
+- Rename currency
 - All quest commands can take whispers (as optional setting?)
 - https://tmi.twitch.tv/group/user/USERNAME_HERE/chatters to check current viewers for loyalty bumps
 - Raid quest

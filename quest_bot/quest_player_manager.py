@@ -208,6 +208,14 @@ class QuestPlayerManager(PlayerManager):
         username = username.lower()
         return self.players[username]['exp']
 
+    @staticmethod
+    def exp_to_level(exp):
+        # The value for every member of the list is the minimum experience to be a given level
+        for level, exp_req in enumerate(settings.EXP_LEVELS, start=-1):
+            if exp < exp_req:
+                return level
+        return settings.LEVEL_CAP
+
     def get_level(self, username):
         """
         Gets what level a given player is.
@@ -215,11 +223,16 @@ class QuestPlayerManager(PlayerManager):
         """
         username = username.lower()
         exp = self.players[username]['exp']
-        # Due to the two off-by-one errors that cancel each other out, this works out. Our exp check kicks us one level
-        # higher, but we index starting at 0
-        for level, exp_req in enumerate(settings.EXP_LEVELS):
-            if exp < exp_req or level == settings.LEVEL_CAP:
-                return level
+
+        return self.exp_to_level(exp)
+
+    def get_prestige(self, username):
+        """
+        Gets what prestige level a given player is.
+        :param username: str - The player who you are modifying
+        """
+        username = username.lower()
+        return self.players[username]['prestige']
 
     def get_items(self, username):
         """
@@ -236,9 +249,9 @@ class QuestPlayerManager(PlayerManager):
         :return: bool - True if successfully prestiged, False if no change
         """
         username = username.lower()
-        if self.players[username]['exp'] >= settings.EXP_LEVELS[settings.LEVEL_CAP-1] and (
+        if self.players[username]['exp'] >= settings.EXP_LEVELS[settings.LEVEL_CAP] and (
                 self.players[username]['gold'] >= settings.PRESTIGE_COST):
-            self.players[username]['exp'] -= settings.EXP_LEVELS[settings.LEVEL_CAP-1]
+            self.players[username]['exp'] -= settings.EXP_LEVELS[settings.LEVEL_CAP]
             self.players[username]['gold'] -= settings.PRESTIGE_COST
             self.players[username]['prestige'] += 1
             self.save_player(username)
