@@ -13,6 +13,7 @@ A game in the form of a Twitch chat bot.
  - faq.txt
 
 ## To Do List:
+- sqlalchemy
 - !questcooldown should display currently set cooldown
 - Rename currency
 - Faster mod cooldown for bot message send

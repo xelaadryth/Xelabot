@@ -28,9 +28,10 @@ class Start(QuestSegment):
         })
 
     def play(self):
-        self.channel.send_msg(
+        msg = (
             '{} and {} end up in a duel over some loot! The first to {} will be the victor!'.format(
                 self.quest.party[0], self.quest.party[1], self.quest.duel_word))
+        self.channel.send_msg(msg)
 
     def attack(self, display_name):
         if display_name not in self.quest.party:
@@ -41,18 +42,18 @@ class Start(QuestSegment):
 
         gold = GOLD_REWARD + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
 
-        self.channel.send_msg(
-            '{0} was quicker on the draw! There\'s nothing left of {1} but a smoking pile of flesh. '
-            '{0} steals {2} gold from {1} and gains {3} exp!'.format(winner, loser, gold, EXP_REWARD))
+        msg = ('{0} was quicker on the draw! There\'s nothing left of {1} but a smoking pile of flesh. '
+               '{0} steals {2} gold from {1} and gains {3} exp!'.format(winner, loser, gold, EXP_REWARD))
+        self.channel.send_msg(msg)
         self.reward(winner, gold=gold, exp=EXP_REWARD)
         self.penalize(loser, gold=gold)
 
         self.complete_quest()
 
     def timeout(self):
-        self.channel.send_msg(
-            '{0} and {1} are apparently pacifists and neither raises a weapon. Both gain {2} exp!'.format(
-                self.quest.party[0], self.quest.party[1], EXP_PACIFIST_REWARD))
+        msg = ('{0} and {1} are apparently pacifists and neither raises a weapon. Both gain {2} exp!'.format(
+               self.quest.party[0], self.quest.party[1], EXP_PACIFIST_REWARD))
+        self.channel.send_msg(msg)
         self.reward(self.quest.party, exp=EXP_PACIFIST_REWARD)
 
         self.complete_quest()

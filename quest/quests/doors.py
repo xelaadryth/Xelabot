@@ -26,9 +26,9 @@ class Start(QuestSegment):
         })
 
     def play(self):
-        self.channel.send_msg(
-            'While running from a massive frost troll, {} finds two doors. '
-            'Do you take the !left or the !right door?'.format(self.quest.party[0]))
+        msg = ('While running from a massive frost troll, {} finds two doors. '
+               'Do you take the !left or the !right door?'.format(self.quest.party[0]))
+        self.channel.send_msg(msg)
 
     def enter(self, display_name):
         if display_name not in self.quest.party:
@@ -37,20 +37,22 @@ class Start(QuestSegment):
         gold = GOLD_REWARD + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
 
         if bool(getrandbits(1)):
-            self.channel.send_msg('{0} opens the door and discovers a treasure chest! '
-                                  '{0} gains {1} gold and gains {2} exp.'.format(display_name, gold, EXP_REWARD))
+            msg = ('{0} opens the door and discovers a treasure chest! '
+                   '{0} gains {1} gold and gains {2} exp.'.format(display_name, gold, EXP_REWARD))
+            self.channel.send_msg(msg)
             self.reward(display_name, gold=gold, exp=EXP_REWARD)
         else:
-            self.channel.send_msg('{0} dashes through the door and is immediately swallowed by a giant poro. '
-                                  '{0} loses {1} gold.'.format(display_name, gold))
+            msg = ('{0} dashes through the door and is immediately swallowed by a giant poro. '
+                   '{0} loses {1} gold.'.format(display_name, gold))
+            self.channel.send_msg(msg)
             self.penalize(display_name, gold=gold)
 
         self.complete_quest()
 
     def timeout(self):
-        self.channel.send_msg(
-            '{0} hesitated too long, and is nommed to death by the frost troll. RIP in peace. '
-            '{0} loses {1} gold.'.format(self.quest.party[0], GOLD_TIMEOUT_PENALTY))
+        msg = ('{0} hesitated too long, and is nommed to death by the frost troll. RIP in peace. '
+               '{0} loses {1} gold.'.format(self.quest.party[0], GOLD_TIMEOUT_PENALTY))
+        self.channel.send_msg(msg)
         self.penalize(self.quest.party[0], gold=GOLD_TIMEOUT_PENALTY)
 
         self.complete_quest()

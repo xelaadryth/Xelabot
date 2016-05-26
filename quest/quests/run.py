@@ -46,11 +46,9 @@ class Start(QuestSegment):
         })
 
     def play(self):
-        self.channel.send_msg(
-            '{0} are all running away from a rampaging {1}! Quick, type {2} to get away!'.format(
-                list_to_string(self.quest.party), MONSTER_NAME, self.quest.escape_word
-            )
-        )
+        msg = '{0} are all running away from a rampaging {1}! Quick, type {2} to get away!'.format(
+            list_to_string(self.quest.party), MONSTER_NAME, self.quest.escape_word)
+        self.channel.send_msg(msg)
 
     def escape(self, display_name):
         # Has to be a new player to be valid input
@@ -75,13 +73,11 @@ class Start(QuestSegment):
         gold_gained = GOLD_REWARD + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
         gold_lost = GOLD_PENALTY + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
 
-        self.channel.send_msg(
-            'In the end, {0} managed to escape from {1} unscathed! {1} happily munches on {2} with terrifying '
-            'crunches, snaps, and some odd purring noises. Those that escaped gain {3} gold and {4} exp, '
-            'while those left behind lose {5} gold.'.format(
-                list_to_string(self.quest.escaped), MONSTER_NAME, losers, gold_gained, EXP_REWARD, gold_lost
-            )
-        )
+        msg = ('In the end, {0} managed to escape from {1} unscathed! {1} happily munches on {2} with terrifying '
+               'crunches, snaps, and some odd purring noises. Those that escaped gain {3} gold and {4} exp, '
+               'while those left behind lose {5} gold.'.format(
+               list_to_string(self.quest.escaped), MONSTER_NAME, list_to_string(losers), gold_gained, EXP_REWARD, gold_lost))
+        self.channel.send_msg(msg)
         self.reward(self.quest.escaped, gold=gold_gained, exp=EXP_REWARD)
         self.penalize(losers, gold=gold_lost)
 
