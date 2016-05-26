@@ -19,9 +19,11 @@ def run_bot():
         traceback.print_exc()
 
         # If the bot crashes for whatever reason, restart it
-        if settings.RESTART_ON_CRASH:
+        if settings.AUTO_RESTART_ON_CRASH:
             time.sleep(5)
             run_bot()
+
+        input('Press Enter to continue...')
 
 if __name__ == "__main__":
     settings.load_settings_file()

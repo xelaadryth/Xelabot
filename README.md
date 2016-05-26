@@ -1,9 +1,14 @@
 # Xelabot
 A game in the form of a Twitch chat bot.
 
+## Developer Setup Instructions
+- Install Python 3.4+
+- Add Python34 and Python34/Scripts to your system PATH
+- Run setup.bat
+- Build with build.bat
+- Run the standalone executable "../dist/xelabot/xelabot.exe"
+
 ## To Do List:
-- Modifiable settings text file
-- Freeze to .exe
 - Auto-update script
 - All quest commands can take whispers (as optional setting?)
 - Update README instructions on Dropbox

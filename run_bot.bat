@@ -1,2 +1,0 @@
-python xelabot.py
-pause

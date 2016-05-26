@@ -1,4 +1,12 @@
-# Dev configurations
+# PyInstaller build files
+dist
+build
+xelabot.spec
+
+# virtualenv
+venv
+
+# Local copy of settings file
 my_settings.txt
 
 # Local data

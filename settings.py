@@ -35,7 +35,7 @@ IRC_SEND_COOLDOWN = 1.6
 IRC_JOIN_SLEEP_TIME = 0.35
 
 # Bot settings
-RESTART_ON_CRASH = False
+AUTO_RESTART_ON_CRASH = False
 DATA_PATH = 'data'
 SETTINGS_FILE_PATH = 'settings.txt'
 CHANNEL_DATA_PATH = os.path.join(DATA_PATH, 'channels')
@@ -65,6 +65,7 @@ DEFAULT_SETTINGS_JSON = OrderedDict([
         ('BOT_OAUTH', BOT_OAUTH)
     ])),
     (OPTIONAL_STRING, OrderedDict([
+        ('AUTO_RESTART_ON_CRASH', AUTO_RESTART_ON_CRASH),
         ('ENABLE_REQUEST_JOIN', ENABLE_REQUEST_JOIN)
     ]))]
 )
@@ -73,16 +74,25 @@ DEFAULT_SETTINGS_JSON = OrderedDict([
 def load_settings_file():
     if os.path.isfile(SETTINGS_FILE_PATH):
         with open(SETTINGS_FILE_PATH) as json_data:
-            settings_json = json.load(json_data)
+            temp_settings_json = json.load(json_data, object_pairs_hook=OrderedDict)
 
         # Iterate over known variable names and change all the module's variables to the ones from file, if any
         module = sys.modules[__name__]
+        settings_json = OrderedDict([
+            (REQUIRED_STRING, OrderedDict()),
+            (OPTIONAL_STRING, OrderedDict())
+        ])
         for key, value in DEFAULT_SETTINGS_JSON[REQUIRED_STRING].items():
-            setattr(module, key, settings_json[REQUIRED_STRING].get(key, value))
+            newest_value = temp_settings_json[REQUIRED_STRING].get(key, value)
+            setattr(module, key, newest_value)
+            settings_json[REQUIRED_STRING][key] = newest_value
         for key, value in DEFAULT_SETTINGS_JSON[OPTIONAL_STRING].items():
-            setattr(module, key, settings_json[OPTIONAL_STRING].get(key, value))
+            newest_value = temp_settings_json[OPTIONAL_STRING].get(key, value)
+            setattr(module, key, temp_settings_json[OPTIONAL_STRING].get(key, value))
+            settings_json[OPTIONAL_STRING][key] = newest_value
     else:
         settings_json = DEFAULT_SETTINGS_JSON
-        # Write to file since it went missing
-        with open(SETTINGS_FILE_PATH, 'w') as json_data:
-            json.dump(settings_json, json_data, indent=4)
+
+    # Write to file to make sure we have the latest data
+    with open(SETTINGS_FILE_PATH, 'w') as json_data:
+        json.dump(settings_json, json_data, indent=4)
