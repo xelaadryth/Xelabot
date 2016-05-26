@@ -19,6 +19,8 @@ class IRCBot:
         self.owner_name = owner_name
         self.oauth = oauth
 
+        self.last_message_send_time = 0
+
         # Initializing socket
         self.irc_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.irc_sock.settimeout(settings.IRC_POLL_TIMEOUT)
@@ -37,10 +39,15 @@ class IRCBot:
         Sends a raw IRC message with post-delay to be consistent with rate-limiting.
         :param msg_str: str - The raw IRC message to be sent
         """
+        # Wait until the cooldown is over
+        required_wait_time = settings.IRC_SEND_COOLDOWN - (time.time() - self.last_message_send_time)
+        if required_wait_time > 0:
+            time.sleep(required_wait_time)
+
         self.send_raw_instant(msg_str)
 
-        # Prevent rate-limiting
-        time.sleep(settings.IRC_SEND_COOLDOWN)
+        # Block further messages until we set the send_msg_cooldown event
+        self.last_message_send_time = time.time()
 
     def recv_raw(self):
         """
@@ -69,7 +76,7 @@ class IRCBot:
 
     def connect(self):
         """
-        Connect to the IRC server and join the intended channels.
+        Connect to the IRC server.
         """
         print('Connecting to IRC service...')
         self.irc_sock.connect((settings.IRC_SERVER, settings.IRC_PORT))

@@ -3,6 +3,7 @@ import traceback
 
 from .channel_manager import ChannelManager
 from .player_manager import PlayerManager
+from utils.timer_thread import Timer
 from utils.command_set import CommandSet
 from utils.irc_bot import IRCBot
 import settings
@@ -19,6 +20,7 @@ class TwitchBot(IRCBot):
         :param oauth: str - The bot's oauth
         """
         super().__init__(bot_name, owner_name, oauth)
+        self.last_join_send_time = 0
 
         self.channel_manager = None
         self.player_manager = None
@@ -85,8 +87,15 @@ class TwitchBot(IRCBot):
         Join another Twitch channel.
         :param channel_name: str - The channel to join
         """
+        # Wait until the cooldown is over
+        required_wait_time = settings.IRC_JOIN_SLEEP_TIME - (time.time() - self.last_join_send_time)
+        if required_wait_time > 0:
+            time.sleep(required_wait_time)
+
         self.send_raw_instant('JOIN #' + channel_name)
-        time.sleep(settings.IRC_JOIN_SLEEP_TIME)
+
+        # Block further joins until we set the send_join_cooldown event
+        self.last_join_send_time = time.time()
 
     def leave_channel(self, channel_name):
         """

@@ -1,0 +1,54 @@
+What is Xelabot?
+	- Xelabot is a game in the form of a Twitch bot! Viewers band together to tackle quests
+	that force them to either work together or destroy each other.
+	
+How do I get it?
+	- Download and run: https://dl.dropboxusercontent.com/u/90882877/Xelabot/xelabot.exe
+	- Make a Twitch account for your bot
+	- Generate an oauth token while logged in as your bot here: https://twitchapps.com/tmi/
+	- Supply required data to the generated settings.txt file and run the executable again!
+		
+Viewer Chat Commands:
+	!quest
+		Starts or joins a quest if in party forming stage (!queston must be enabled)
+	!requestjoin
+		Asks the bot to join your channel (if broadcaster enables the setting)
+	!requestleave
+		Asks the bot to leave your channel (if broadcaster enables the setting)
+	
+Viewer Whisper Commands:
+	!faq
+		Whispers you a link to this FAQ
+	!stats
+		Whispers you your vital stats
+	!prestige
+		At level cap, resets your level and a large sum of gold to increase prestige level and bonuses
+
+Mod Chat Commands
+	!queston
+		Enables questing
+	!questoff
+		Disables questing
+	!questcooldown [seconds]
+		Sets the cooldown for quests to the given number of seconds
+
+
+FREQUENTLY ASKED QUESTIONS
+	Can my gold go negative?
+		Nope, no it can't!
+	What is prestige?
+		Each prestige level increases gold accumulation by 5%, other uses may be incoming.
+	Are my stats channel-specific?
+		Stats are saved across channels for the same bot. Across different bots no.
+	What's the difference between the same bot in two channels and two different bots?
+		The same bot in two channels is hosted by the same broadcaster, and thus stats are shared
+		across the channels. Two different bots keep stats for players separately.
+	Is the quest cooldown per person or per channel?
+		The quest cooldown timer is per channel.
+	I tried what you said but it still doesn't work!
+		Feel free to message me, I'll be happy to help!
+
+
+If you have any feedback or questions, feel free to whisper or DM me, Xelaadryth!
+http://www.twitch.tv/xelaadryth
+https://www.twitter.com/xelaadryth

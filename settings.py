@@ -31,8 +31,9 @@ IRC_POLL_TIMEOUT = 0.5
 IRC_RECV_SIZE = 1024
 # If Twitch sends a bunch of messages at once, it chunks it into multiple sends that may be delayed
 IRC_CHUNK_DELAY = 0.15
-# Rate-limit protection: 20 commands within 30 second period, or 1.5 second sleep time
-# Whisper rate-limit is actually 3 per second, 100 per minute (0.6 seconds) but to be safe we share the same cooldown
+# Whisper rate-limit is actually 3 per second, 100 per minute (0.6 seconds) but we share the same cooldown
+# TODO: Faster mod cooldowns
+# Rate-limit protection: 20 commands within 30 second period, or 1.5 second sleep time for non-mods
 IRC_SEND_COOLDOWN = 1.6
 # Rate-limit protection: 50 JOINs per 15 seconds, or 0.3 sleep time
 IRC_JOIN_SLEEP_TIME = 0.35
@@ -62,6 +63,7 @@ QUEST_DEFAULT_COOLDOWN = 90
 BASE_URL = 'https://dl.dropboxusercontent.com/u/90882877/Xelabot/'
 VERSION_FILENAME = 'version.txt'
 EXECUTABLE_FILENAME = 'xelabot.exe'
+HELP_FILENAME = 'faq.txt'
 
 ########################################################################################################################
 # Dynamically loaded settings

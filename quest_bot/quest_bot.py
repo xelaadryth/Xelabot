@@ -27,9 +27,11 @@ class QuestBot(TwitchBot):
         # Commands for direct whispers to the bot
         self.whisper_commands = CommandSet(exact_match_commands={
             '!faq': self.faq_whisper,
+            '!help': self.faq_whisper,
             '!gold': self.stats_whisper,
             '!exp': self.stats_whisper,
             '!stats': self.stats_whisper,
+            '!items': self.stats_whisper,
             '!prestige': self.try_prestige
         })
 

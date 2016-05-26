@@ -10,9 +10,12 @@ A game in the form of a Twitch chat bot.
 - For auto-update, change settings.BASE_URL and keep the following files available for download:
  - xelabot.exe (from /dist/xelabot/xelabot.exe)
  - version.txt (A file whose only contents is a string of settings.VERSION)
+ - faq.txt
 
 ## To Do List:
+- Replace text files with SQLite
 - Rename currency
+- Faster mod cooldown for bot message send
 - All quest commands can take whispers (as optional setting?)
 - https://tmi.twitch.tv/group/user/USERNAME_HERE/chatters to check current viewers for loyalty bumps
 - Raid quest

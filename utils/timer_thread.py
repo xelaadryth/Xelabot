@@ -5,7 +5,7 @@ class Timer:
     """
     A timer that can be canceled.
     """
-    active_timers = set()
+    active_timers = []
 
     def __init__(self, duration, callback):
         self.callback = callback
@@ -14,7 +14,7 @@ class Timer:
         self.start_time = time.time()
         self.duration = duration
 
-        Timer.active_timers.add(self)
+        Timer.active_timers.append(self)
 
     def is_complete(self):
         """
@@ -34,13 +34,13 @@ class Timer:
         Then, run all timer callbacks that have completed successfully.
         """
         callbacks = []
-        remaining_timers = set()
+        remaining_timers = []
         for timer in Timer.active_timers:
             callback = timer.is_complete()
             if callback:
                 callbacks.append(callback)
             else:
-                remaining_timers.add(timer)
+                remaining_timers.append(timer)
         Timer.active_timers = remaining_timers
 
         for callback in callbacks:
@@ -50,7 +50,8 @@ class Timer:
         """
         Cancel the timer.
         """
-        Timer.active_timers.discard(self)
+        if self in Timer.active_timers:
+            Timer.active_timers.remove(self)
 
     def remaining(self):
         """

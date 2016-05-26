@@ -25,13 +25,10 @@ class Start(QuestSegment):
     def set_commands(self):
         commands = {}
         for party_member in self.quest.party[1:]:
-            # Due to party_member changing every iteration, we have to wrap this closure in another closure
-            # or it gets overridden on the next loop iteration, so we bind its value to target and put that
-            # in a closure (the lambda)
-            def pick_target(display_name, target=party_member):
-                return (lambda: self.pick(display_name, target))()
-
-            commands['!{}'.format(party_member.lower())] = pick_target
+            # Due to party_member changing every iteration, we have to copy the value of party_member
+            # to something else, or the same reference will be used for every iteration
+            commands['!{}'.format(party_member.lower())] = (
+                lambda display_name, target=party_member: self.pick(display_name, target))
         self.commands = CommandSet(exact_match_commands=commands)
 
     def play(self):

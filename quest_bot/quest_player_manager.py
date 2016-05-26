@@ -259,6 +259,20 @@ class QuestPlayerManager(PlayerManager):
         else:
             return False
 
+    @staticmethod
+    def list_items(items):
+        msg = ''
+        for item, quantity in items.items():
+            if quantity <= 0:
+                continue
+            if quantity == 1:
+                msg += '{}, '.format(item)
+            else:
+                msg += '{} ({}), '.format(item, quantity)
+
+        msg = msg.rstrip(', ')
+        return msg
+
     def whisper_stats(self, username):
         """
         Whispers a player their relevant stats.
@@ -266,9 +280,10 @@ class QuestPlayerManager(PlayerManager):
         """
         username = username.lower()
         player = self.players[username]
-        msg = '{}Level: {} ({} Exp), Gold: {}'.format(
+        msg = '{}Level: {} ({} Exp), Gold: {}{}'.format(
             'Prestige: {}, '.format(player['prestige']) if player['prestige'] else '',
-            self.get_level(username), player['exp'], player['gold'])
+            self.get_level(username), player['exp'], player['gold'],
+            ', Items: {}'.format(self.list_items(player['items'])) if player['items'] else '')
         self.bot.send_whisper(username, msg)
 
     def save_player(self, username):
