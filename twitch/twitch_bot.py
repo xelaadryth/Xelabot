@@ -3,7 +3,6 @@ import traceback
 
 from .channel_manager import ChannelManager
 from .player_manager import PlayerManager
-from utils.timer_thread import Timer
 from utils.command_set import CommandSet
 from utils.irc_bot import IRCBot
 import settings

@@ -1,6 +1,6 @@
 from copy import deepcopy
-import json
-import os
+from sqlitedict import SqliteDict
+
 
 import settings
 
@@ -31,28 +31,29 @@ class PlayerManager:
     def __init__(self, bot):
         self.bot = bot
         self.players = self.PlayerDict(self)
+        self.player_db = SqliteDict(settings.DATABASE_FILE, tablename='players', autocommit=True)
+
         self.initialized = False
-
-        # Load up all the existing channel information
-        if not os.path.exists(settings.PLAYER_DATA_PATH):
-            os.makedirs(settings.PLAYER_DATA_PATH)
-        for filename in os.listdir(settings.PLAYER_DATA_PATH):
-            with open(os.path.join(settings.PLAYER_DATA_PATH, filename)) as read_file:
-                player_settings = json.load(read_file)
-
-            self.players[player_settings['name']] = player_settings
-
+        self.load_player_stats_from_db()
         self.initialized = True
 
-    @staticmethod
-    def save_player_data(username, data):
+    def load_player_stats_from_db(self):
+        """
+        Loads all valid data from database into the PlayerManager.
+        """
+        for player_name, player_stats in self.player_db.items():
+            for key in self.players[player_name]:
+                if key in player_stats:
+                    self.players[player_name][key] = player_stats[key]
+
+    def save_player_data(self, username, data):
         """
         Saves a specific player's data to persistent storage.
         :param username: str - The player whose data you want to save
         :param data: dict - The player data you are saving
         """
-        with open(os.path.join(settings.PLAYER_DATA_PATH, username + '.txt'), 'w') as player_file:
-            json.dump(data, player_file, indent=4, sort_keys=True)
+        data['items'] = dict(data['items'])
+        self.player_db[username] = data
 
     def save_player(self, username):
         """

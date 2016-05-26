@@ -1,4 +1,3 @@
-from collections import defaultdict
 from copy import deepcopy
 
 import settings
@@ -32,7 +31,7 @@ class QuestPlayerManager(PlayerManager):
         'exp': 0,
         'prestige': 0,
         'gold': 0,
-        'items': defaultdict(lambda: 0)
+        'items': {}
     })
 
     def __add_gold(self, username, gold, prestige_benefits=True):
@@ -92,7 +91,10 @@ class QuestPlayerManager(PlayerManager):
                 self.__add_item(username, single_item)
         else:
             username = username.lower()
-            self.players[username]['items'][item] += 1
+            if item not in self.players[username]['items']:
+                self.players[username]['items'][item] = 1
+            else:
+                self.players[username]['items'][item] += 1
 
     def add_item(self, username, item):
         """

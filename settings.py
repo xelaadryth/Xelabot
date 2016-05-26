@@ -4,7 +4,7 @@ import os
 import sys
 
 
-VERSION = '2.0.0.0'
+VERSION = '2.0.1.0'
 
 
 ########################################################################################################################
@@ -18,11 +18,13 @@ BOT_OAUTH = 'oauth:bot_oauth_code'
 #  Optional settings; filled from file
 ########################################################################################################################
 
+# Bot setting to restart if it crashes
+AUTO_RESTART_ON_CRASH = False
 # Lets other people use a shared instance of your bot in their channel; disable if bot gets laggy
 ENABLE_REQUEST_JOIN = True
 
 ########################################################################################################################
-# Core settings; probably shouldn't change these
+# Twitch and IRC settings
 ########################################################################################################################
 # Twitch settings
 IRC_SERVER = 'irc.twitch.tv'
@@ -38,14 +40,18 @@ IRC_SEND_COOLDOWN = 1.6
 # Rate-limit protection: 50 JOINs per 15 seconds, or 0.3 sleep time
 IRC_JOIN_SLEEP_TIME = 0.35
 
-# Bot settings
-AUTO_RESTART_ON_CRASH = False
+########################################################################################################################
+# Local file paths
+########################################################################################################################
 DATA_PATH = 'data'
+DATABASE_FILE = 'data.db'
 SETTINGS_FILENAME = 'settings.txt'
 CHANNEL_DATA_PATH = os.path.join(DATA_PATH, 'channels')
 PLAYER_DATA_PATH = os.path.join(DATA_PATH, 'players')
 
-# Game settings
+########################################################################################################################
+# Quest settings
+########################################################################################################################
 EXP_LEVELS = [-1,
               0,   3,   7,   12,  18,  25,  33,  42,  52,  63,
               75,  88,  102, 117, 133, 150, 168, 187, 207, 228,
@@ -58,7 +64,7 @@ QUEST_DURATION = 12
 QUEST_DEFAULT_COOLDOWN = 90
 
 ########################################################################################################################
-# Sites and urls
+# Sites and urls that should be hosted
 ########################################################################################################################
 BASE_URL = 'https://dl.dropboxusercontent.com/u/90882877/Xelabot/'
 VERSION_FILENAME = 'version.txt'

@@ -19,7 +19,12 @@ class QuestManager:
         self.quest_timer = None
         self.quest_state = QuestState.ready
         self.commands = CommandSet()
-        self.enable_questing()
+
+        # Channel is guaranteed to be initialized at this point
+        if self.channel.channel_settings['quest_enabled']:
+            self.enable_questing()
+        else:
+            self.disable_questing()
 
     def start_quest_advance_timer(self, duration=settings.QUEST_DURATION):
         """

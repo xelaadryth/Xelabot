@@ -10,7 +10,7 @@ venv
 settings.txt
 
 # Local data
-data
+data.db
 
 # PyCharm
 .idea

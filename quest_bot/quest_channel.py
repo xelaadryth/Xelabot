@@ -15,6 +15,13 @@ class QuestChannel(Channel):
     def __init__(self, owner, channel_manager):
         super().__init__(owner, channel_manager)
 
+        self.quest_manager = None
+
+    def initialize(self):
+        """
+        Prepare the active sections of the Channel.
+        """
+        super().initialize()
         self.quest_manager = QuestManager(self)
 
         self.mod_commands.add_commands(
