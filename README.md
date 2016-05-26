@@ -13,6 +13,7 @@ A game in the form of a Twitch chat bot.
  - faq.txt
 
 ## To Do List:
+- !questcooldown should display currently set cooldown
 - Rename currency
 - Faster mod cooldown for bot message send
 - All quest commands can take whispers (as optional setting?)
