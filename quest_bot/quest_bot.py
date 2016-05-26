@@ -8,12 +8,13 @@ class QuestBot(TwitchBot):
     """
     Bot with commands for quest mode.
     """
-    def __init__(self, nickname, oauth):
+    def __init__(self, bot_name, owner_name, oauth):
         """
-        :param nickname: str - The bot's username
+        :param bot_name: str - The bot's username
+        :param owner_name: str - The owner's username
         :param oauth: str - The bot's oauth
         """
-        super().__init__(nickname, oauth)
+        super().__init__(bot_name, owner_name, oauth)
 
     def initialize(self):
         print('Initializing channel manager...')

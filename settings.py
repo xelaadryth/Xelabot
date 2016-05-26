@@ -1,16 +1,19 @@
+from collections import OrderedDict
+import json
 import os
+import sys
+
 
 ########################################################################################################################
-#  Required settings; add these immediately!
+#  Required settings; filled from file
 ########################################################################################################################
-BROADCASTER_NAME = "Your_Twitch_Name"
-BOT_NAME = "Twitch_Bot_Name"
-BOT_OAUTH = "oauth:bot_oauth_code"
+BROADCASTER_NAME = 'Your_Twitch_Name'
+BOT_NAME = 'Twitch_Bot_Name'
+BOT_OAUTH = 'oauth:bot_oauth_code'
 
 ########################################################################################################################
-# Optional settings; change these as you want
+#  Optional settings; filled from file
 ########################################################################################################################
-QUEST_DEFAULT_COOLDOWN = 90
 
 # Lets other people use a shared instance of your bot in their channel; disable if bot gets laggy
 ENABLE_REQUEST_JOIN = True
@@ -19,7 +22,7 @@ ENABLE_REQUEST_JOIN = True
 # Core settings; probably shouldn't change these
 ########################################################################################################################
 # Twitch settings
-IRC_SERVER = "irc.twitch.tv"
+IRC_SERVER = 'irc.twitch.tv'
 IRC_PORT = 6667
 IRC_POLL_TIMEOUT = 0.5
 IRC_RECV_SIZE = 1024
@@ -34,6 +37,7 @@ IRC_JOIN_SLEEP_TIME = 0.35
 # Bot settings
 RESTART_ON_CRASH = False
 DATA_PATH = 'data'
+SETTINGS_FILE_PATH = 'settings.txt'
 CHANNEL_DATA_PATH = os.path.join(DATA_PATH, 'channels')
 PLAYER_DATA_PATH = os.path.join(DATA_PATH, 'players')
 
@@ -47,3 +51,38 @@ PRESTIGE_COST = 30000
 PRESTIGE_GOLD_AMP = 0.05
 # How long there is for user interaction between quest advance sections
 QUEST_DURATION = 12
+QUEST_DEFAULT_COOLDOWN = 90
+
+########################################################################################################################
+# Dynamically loaded settings
+########################################################################################################################
+REQUIRED_STRING = 'REQUIRED'
+OPTIONAL_STRING = 'OPTIONAL'
+DEFAULT_SETTINGS_JSON = OrderedDict([
+    (REQUIRED_STRING, OrderedDict([
+        ('BROADCASTER_NAME', BROADCASTER_NAME),
+        ('BOT_NAME', BOT_NAME),
+        ('BOT_OAUTH', BOT_OAUTH)
+    ])),
+    (OPTIONAL_STRING, OrderedDict([
+        ('ENABLE_REQUEST_JOIN', ENABLE_REQUEST_JOIN)
+    ]))]
+)
+
+
+def load_settings_file():
+    if os.path.isfile(SETTINGS_FILE_PATH):
+        with open(SETTINGS_FILE_PATH) as json_data:
+            settings_json = json.load(json_data)
+
+        # Iterate over known variable names and change all the module's variables to the ones from file, if any
+        module = sys.modules[__name__]
+        for key, value in DEFAULT_SETTINGS_JSON[REQUIRED_STRING].items():
+            setattr(module, key, settings_json[REQUIRED_STRING].get(key, value))
+        for key, value in DEFAULT_SETTINGS_JSON[OPTIONAL_STRING].items():
+            setattr(module, key, settings_json[OPTIONAL_STRING].get(key, value))
+    else:
+        settings_json = DEFAULT_SETTINGS_JSON
+        # Write to file since it went missing
+        with open(SETTINGS_FILE_PATH, 'w') as json_data:
+            json.dump(settings_json, json_data, indent=4)

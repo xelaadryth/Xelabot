@@ -53,7 +53,7 @@ class ChannelManager:
         :param data: dict - The channel data you are saving
         """
         with open(os.path.join(settings.CHANNEL_DATA_PATH, username + '.txt'), 'w') as channel_file:
-            json.dump(data, channel_file)
+            json.dump(data, channel_file, indent=4, sort_keys=True)
 
     def save_channel(self, username):
         """

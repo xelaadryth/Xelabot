@@ -11,7 +11,7 @@ def run_bot():
     """
     try:
         # Create the bot
-        bot = QuestBot(settings.BOT_NAME, settings.BOT_OAUTH)
+        bot = QuestBot(settings.BOT_NAME, settings.BROADCASTER_NAME, settings.BOT_OAUTH)
         bot.connect()
         bot.run()
     except Exception as e:
@@ -24,4 +24,5 @@ def run_bot():
             run_bot()
 
 if __name__ == "__main__":
+    settings.load_settings_file()
     run_bot()

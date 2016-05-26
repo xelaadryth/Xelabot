@@ -52,7 +52,7 @@ class PlayerManager:
         :param data: dict - The player data you are saving
         """
         with open(os.path.join(settings.PLAYER_DATA_PATH, username + '.txt'), 'w') as player_file:
-            json.dump(data, player_file)
+            json.dump(data, player_file, indent=4, sort_keys=True)
 
     def save_player(self, username):
         """

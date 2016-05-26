@@ -9,12 +9,14 @@ class IRCBot:
     """
     Sends and receives messages to and from IRC channels.
     """
-    def __init__(self, nickname, oauth):
+    def __init__(self, bot_name, owner_name, oauth):
         """
-        :param nickname: str - The bot's username
+        :param bot_name: str - The bot's username
+        :param owner_name: str - The owner's username
         :param oauth: str - The bot's oauth
         """
-        self.nickname = nickname
+        self.nickname = bot_name
+        self.owner_name = owner_name
         self.oauth = oauth
 
         # Initializing socket
@@ -81,13 +83,6 @@ class IRCBot:
         """
         # Guaranteed to be at least two string tokens from the check in the main run loop
         self.send_raw_instant('PONG ' + server)
-
-    @staticmethod
-    def login_failure():
-        """
-        If we fail to login, raise an exception.
-        """
-        raise RuntimeError('Failed to login, most likely invalid login credentials.')
 
     def handle_msg(self, raw_msg):
         """

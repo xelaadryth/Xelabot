@@ -12,12 +12,13 @@ class TwitchBot(IRCBot):
     """
     Sends and receives messages to and from Twitch channels.
     """
-    def __init__(self, nickname, oauth):
+    def __init__(self, bot_name, owner_name, oauth):
         """
-        :param nickname: str - The bot's username
+        :param bot_name: str - The bot's username
+        :param owner_name: str - The owner's username
         :param oauth: str - The bot's oauth
         """
-        super().__init__(nickname, oauth)
+        super().__init__(bot_name, owner_name, oauth)
 
         self.channel_manager = None
         self.player_manager = None
@@ -45,6 +46,11 @@ class TwitchBot(IRCBot):
         self.send_raw_instant('CAP REQ :twitch.tv/tags')
         # Enable whisper receiving
         self.send_raw_instant('CAP REQ :twitch.tv/commands')
+
+        # If the user hasn't changed from defaults, error out
+        if self.owner_name == settings.DEFAULT_SETTINGS_JSON[settings.REQUIRED_STRING]['BROADCASTER_NAME'] or (
+                self.nickname == settings.DEFAULT_SETTINGS_JSON[settings.REQUIRED_STRING]['BOT_NAME']):
+            raise RuntimeError('Open up settings.txt and set the Twitch username for you and your bot!')
 
         # Bot should always join its own channel and the broadcaster's channel
         self.channel_manager.add_channel(settings.BOT_NAME.lower())
@@ -209,7 +215,7 @@ class TwitchBot(IRCBot):
 
         lower_msg = raw_msg.lower()
         if lower_msg in [':tmi.twitch.tv notice * :error logging in', ':tmi.twitch.tv notice * :login unsuccessful']:
-            self.login_failure()
+            raise RuntimeError('Failed to login, most likely invalid login credentials.')
 
         raw_msg_tokens = raw_msg.split()
         if len(raw_msg_tokens) < 3:

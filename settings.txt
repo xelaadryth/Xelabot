@@ -1,0 +1,10 @@
+{
+    "REQUIRED": {
+        "BROADCASTER_NAME": "Your_Twitch_Name",
+        "BOT_NAME": "Twitch_Bot_Name",
+        "BOT_OAUTH": "oauth:bot_oauth_code"
+    },
+    "OPTIONAL": {
+        "ENABLE_REQUEST_JOIN": true
+    }
+}

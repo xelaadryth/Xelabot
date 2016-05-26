@@ -15,7 +15,7 @@ class TestQuestBot(unittest.TestCase):
             with patch('os.listdir'):
                 with patch('twitch.twitch_bot.PlayerManager', return_value=self.player_manager_mock):
                     with patch('utils.irc_bot.socket.socket', return_value=self.socket_mock):
-                        self.bot = TwitchBot('BotName', 'oauth:something')
+                        self.bot = TwitchBot('BotName', 'OwnerName', 'oauth:something')
 
     @patch.object(TwitchBot, 'join_channel')
     def test_login(self, join_channel_mock, _):
@@ -56,11 +56,8 @@ class TestQuestBot(unittest.TestCase):
         self.assertEqual(self.socket_mock.connect.call_count, 1, 'Never tried connecting.')
         self.assertGreater(self.socket_mock.send.call_count, 0, 'Login info not sent properly.')
 
-    @patch.object(TwitchBot, 'login_failure')
-    def test_invalid_login(self, login_failure_mock, _):
-        self.bot.handle_msg(':tmi.twitch.tv NOTICE * :Login unsuccessful')
-
-        self.assertEqual(login_failure_mock.call_count, 1, 'Unsuccessful login not handled.')
+    def test_invalid_login(self, _):
+        self.assertRaises(RuntimeError, lambda: self.bot.handle_msg(':tmi.twitch.tv NOTICE * :Login unsuccessful'))
 
     def test_ping_pong(self, _):
         pong_mock = MagicMock()
