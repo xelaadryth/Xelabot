@@ -28,24 +28,12 @@ class QuestPlayerManager(PlayerManager):
     Note that both store actions and raw store actions qualify for this.
     """
     default_player = deepcopy(PlayerManager.default_player)
-
-    def __init__(self, bot):
-        self.default_player.update({
-            'exp': 0,
-            'prestige': 0,
-            'gold': 0,
-            'items': defaultdict(lambda: 0)
-        })
-        super().__init__(bot)
-
-    # When a player entry is missing, create and save it
-    class PlayerDict(dict):
-        def __missing__(self, key):
-            value = deepcopy(QuestPlayerManager.default_player)
-            value['name'] = key
-            self[key] = value
-            QuestPlayerManager.save_player_data(key, value)
-            return value
+    default_player.update({
+        'exp': 0,
+        'prestige': 0,
+        'gold': 0,
+        'items': defaultdict(lambda: 0)
+    })
 
     def __add_gold(self, username, gold, prestige_benefits=True):
         """

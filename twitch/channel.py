@@ -1,11 +1,18 @@
+from copy import deepcopy
+
 import settings
 from utils.command_set import CommandSet
 
 
 class Channel:
-    def __init__(self, owner, channel_settings, channel_manager):
+    default_settings = {
+        'name': None,
+        'auto_join': False
+    }
+
+    def __init__(self, owner, channel_manager):
         self.owner = owner
-        self.channel_settings = channel_settings
+        self.channel_settings = deepcopy(self.default_settings)
         self.channel_manager = channel_manager
 
         self.mod_commands = CommandSet()

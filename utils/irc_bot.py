@@ -101,8 +101,6 @@ class IRCBot:
 
         if lower_msg.startswith('ping '):
             self.send_pong(raw_msg.split()[1])
-        elif lower_msg in [':tmi.twitch.tv notice * :error logging in', ':tmi.twitch.tv notice * :login unsuccessful']:
-            self.login_failure()
 
     def run(self):
         """

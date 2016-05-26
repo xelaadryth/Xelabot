@@ -1,7 +1,4 @@
-from copy import deepcopy
-
 from .quest_channel import QuestChannel
-import settings
 from twitch.channel_manager import ChannelManager
 
 
@@ -9,16 +6,7 @@ class QuestChannelManager(ChannelManager):
     """
     Keeps track of all channels the quest bot interacts with.
     """
-    default_settings = deepcopy(ChannelManager.default_settings)
-
     channel_type = QuestChannel
-
-    def __init__(self, bot):
-        self.default_settings.update({
-            'quest_enabled': True,
-            'quest_cooldown': settings.QUEST_DEFAULT_COOLDOWN
-        })
-        super().__init__(bot)
 
     def enable_quest(self, channel_name):
         """

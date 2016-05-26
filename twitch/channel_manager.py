@@ -1,4 +1,3 @@
-import copy
 import json
 import os
 import settings
@@ -10,16 +9,30 @@ class ChannelManager:
     """
     Keeps track of all channels the bot interacts with.
     """
-    default_settings = {
-        'name': None,
-        'auto_join': True
-    }
-
     channel_type = Channel
+
+    # When a channel is missing, create and save it
+    class ChannelDict(dict):
+        """
+        A dictionary that, when indexed at a non-existent channel name, still returns a default channel
+        object that is also saved to persistent storage.
+        """
+        def __init__(self, channel_manager):
+            super().__init__()
+            self.channel_manager = channel_manager
+
+        def __missing__(self, key):
+            channel = self.channel_manager.channel_type(key, self.channel_manager)
+            channel.channel_settings['name'] = key
+            self[key] = channel
+            if self.channel_manager.initialized:
+                self.channel_manager.save_channel_data(key, channel.channel_settings)
+            return channel
 
     def __init__(self, bot):
         self.bot = bot
-        self.channels = {}
+        self.channels = self.ChannelDict(self)
+        self.initialized = False
 
         # Load up all the existing channel information
         if not os.path.exists(settings.CHANNEL_DATA_PATH):
@@ -28,14 +41,19 @@ class ChannelManager:
             with open(os.path.join(settings.CHANNEL_DATA_PATH, filename)) as json_data:
                 channel_settings = json.load(json_data)
 
-            # Fill missing settings with default settings
-            channel_settings_keys = set(channel_settings.keys())
-            for key, value in self.default_settings.items():
-                if key not in channel_settings_keys:
-                    channel_settings[key] = value
+            self.channels[channel_settings['name']].channel_settings.update(channel_settings)
 
-            self.channels[channel_settings['name']] = self.channel_type(
-                channel_settings['name'], channel_settings, self)
+        self.initialized = True
+
+    @staticmethod
+    def save_channel_data(username, data):
+        """
+        Saves a specific channel to persistent storage.
+        :param username: str - The owner of the channel you want to save
+        :param data: dict - The channel data you are saving
+        """
+        with open(os.path.join(settings.CHANNEL_DATA_PATH, username + '.txt'), 'w') as channel_file:
+            json.dump(data, channel_file)
 
     def save_channel(self, username):
         """
@@ -43,11 +61,9 @@ class ChannelManager:
         :param username: str - The owner of the channel you want to save
         """
         username = username.lower()
-        channel = self.channels[username]
+        channel_data = self.channels[username].channel_settings
 
-        with open(os.path.join(
-                settings.CHANNEL_DATA_PATH, channel.channel_settings['name'] + '.txt'), 'w') as channel_file:
-            json.dump(channel.channel_settings, channel_file)
+        self.save_channel_data(username, channel_data)
 
     def add_channel(self, username):
         """
@@ -55,13 +71,7 @@ class ChannelManager:
         :param username: str - The owner of the channel you want to add
         """
         username = username.lower()
-        if username not in self.channels:
-            channel_settings = copy.deepcopy(self.default_settings)
-            channel_settings['name'] = username.lower()
-            self.channels[username] = self.channel_type(channel_settings['name'], channel_settings, self)
-            self.save_channel(username)
-        else:
-            self.enable_auto_join(username)
+        self.enable_auto_join(username)
 
     def join_channel(self, username):
         """
@@ -70,7 +80,7 @@ class ChannelManager:
         """
         username = username.lower()
         self.add_channel(username)
-        self.bot.send_raw('JOIN #' + username)
+        self.bot.join_channel(username)
 
     def leave_channel(self, username):
         """
@@ -79,7 +89,7 @@ class ChannelManager:
         """
         username = username.lower()
         self.disable_auto_join(username)
-        self.bot.send_raw('PART #' + username)
+        self.bot.leave_channel(username)
 
     def reset_channel(self, username):
         """
@@ -96,8 +106,7 @@ class ChannelManager:
         :param channel_name: str - The owner of the channel who you are changing settings for
         """
         channel_name = channel_name.lower()
-        if channel_name in self.channels:
-            self.channels[channel_name].channel_settings['auto_join'] = True
+        self.channels[channel_name].channel_settings['auto_join'] = True
         self.save_channel(channel_name)
 
     def disable_auto_join(self, channel_name):
@@ -106,6 +115,5 @@ class ChannelManager:
         :param channel_name: str - The owner of the channel who you are changing settings for
         """
         channel_name = channel_name.lower()
-        if channel_name in self.channels:
-            self.channels[channel_name].channel_settings['auto_join'] = False
-            self.save_channel(channel_name)
+        self.channels[channel_name].channel_settings['auto_join'] = False
+        self.save_channel(channel_name)

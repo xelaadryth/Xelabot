@@ -1,10 +1,19 @@
+from copy import deepcopy
+
 from quest.quest_manager import QuestManager
+import settings
 from twitch.channel import Channel
 
 
 class QuestChannel(Channel):
-    def __init__(self, owner, channel_settings, channel_manager):
-        super().__init__(owner, channel_settings, channel_manager)
+    default_settings = deepcopy(Channel.default_settings)
+    default_settings.update({
+        'quest_enabled': True,
+        'quest_cooldown': settings.QUEST_DEFAULT_COOLDOWN
+    })
+
+    def __init__(self, owner, channel_manager):
+        super().__init__(owner, channel_manager)
 
         self.quest_manager = QuestManager(self)
 

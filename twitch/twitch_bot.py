@@ -2,7 +2,7 @@ import time
 import traceback
 
 from .channel_manager import ChannelManager
-from.player_manager import PlayerManager
+from .player_manager import PlayerManager
 from utils.command_set import CommandSet
 from utils.irc_bot import IRCBot
 import settings
@@ -47,20 +47,18 @@ class TwitchBot(IRCBot):
         self.send_raw_instant('CAP REQ :twitch.tv/commands')
 
         # Bot should always join its own channel and the broadcaster's channel
-        self.channel_manager.join_channel(settings.BOT_NAME)
-        self.channel_manager.join_channel(settings.BROADCASTER_NAME)
+        self.channel_manager.add_channel(settings.BOT_NAME.lower())
+        self.channel_manager.add_channel(settings.BROADCASTER_NAME.lower())
 
         for channel_name, channel in self.channel_manager.channels.items():
-            if channel_name not in [settings.BROADCASTER_NAME.lower(), settings.BOT_NAME.lower()] and (
-                    channel.channel_settings['auto_join']):
+            if channel.channel_settings['auto_join']:
                 print('Joining channel: {}...'.format(channel_name))
                 # Join rate-limiting is at a rate of 50 joins per 15 seconds
-                self.send_raw_instant('JOIN #' + channel_name)
-                time.sleep(settings.IRC_JOIN_SLEEP_TIME)
+                self.join_channel(channel_name)
 
     def send_msg(self, channel_name, msg_str):
         """
-        Send a message to an IRC chatroom.
+        Send a message to a Twitch channel.
         :param channel_name: str - The channel to post a message to
         :param msg_str: str - The message to post
         """
@@ -75,6 +73,21 @@ class TwitchBot(IRCBot):
         target_name = target_name.lower()
         # It doesn't matter what channel we use to send whispers, but our own channel is safest
         self.send_msg(self.nickname, '/w {} {}'.format(target_name, msg_str))
+
+    def join_channel(self, channel_name):
+        """
+        Join another Twitch channel.
+        :param channel_name: str - The channel to join
+        """
+        self.send_raw_instant('JOIN #' + channel_name)
+        time.sleep(settings.IRC_JOIN_SLEEP_TIME)
+
+    def leave_channel(self, channel_name):
+        """
+        Join another Twitch channel.
+        :param channel_name: str - The channel to join
+        """
+        self.send_raw_instant('PART #' + channel_name)
 
     @staticmethod
     def parse_tags(raw_tags):
@@ -194,8 +207,11 @@ class TwitchBot(IRCBot):
         """
         super().handle_msg(raw_msg)
 
-        raw_msg_tokens = raw_msg.split()
+        lower_msg = raw_msg.lower()
+        if lower_msg in [':tmi.twitch.tv notice * :error logging in', ':tmi.twitch.tv notice * :login unsuccessful']:
+            self.login_failure()
 
+        raw_msg_tokens = raw_msg.split()
         if len(raw_msg_tokens) < 3:
             return
         try:
