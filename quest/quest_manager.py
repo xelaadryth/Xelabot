@@ -4,7 +4,7 @@ from .quest_state import QuestState
 from .quests import QUEST_LIST
 import settings
 from utils.command_set import CommandSet
-from utils.timer_thread import Timer
+from utils.timer import Timer
 
 
 class QuestManager:

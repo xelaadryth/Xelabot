@@ -11,11 +11,10 @@ class TestQuestBot(unittest.TestCase):
         self.socket_mock = MagicMock()
         self.player_manager_mock = MagicMock()
 
-        with patch('os.makedirs'):
-            with patch('os.listdir'):
-                with patch('twitch.twitch_bot.PlayerManager', return_value=self.player_manager_mock):
-                    with patch('utils.irc_bot.socket.socket', return_value=self.socket_mock):
-                        self.bot = TwitchBot('BotName', 'OwnerName', 'oauth:something')
+        with patch('twitch.channel_manager.ChannelManager.load_settings_from_db'):
+            with patch('twitch.twitch_bot.PlayerManager', return_value=self.player_manager_mock):
+                with patch('utils.irc_bot.socket.socket', return_value=self.socket_mock):
+                    self.bot = TwitchBot('BotName', 'OwnerName', 'oauth:something')
 
     @patch.object(TwitchBot, 'join_channel')
     def test_login(self, join_channel_mock, _):

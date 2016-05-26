@@ -11,9 +11,8 @@ import settings
 class TestRun(unittest.TestCase):
     def setUp(self):
         self.bot = MagicMock()
-        with patch('os.makedirs'):
-            with patch('os.listdir'):
-                self.player_manager = QuestPlayerManager(self.bot)
+        with patch('twitch.player_manager.PlayerManager.load_player_stats_from_db'):
+            self.player_manager = QuestPlayerManager(self.bot)
         self.channel = MagicMock()
         self.channel.channel_manager.bot = self.bot
         self.channel.channel_manager.bot.player_manager = self.player_manager
@@ -272,7 +271,7 @@ class TestRun(unittest.TestCase):
 
         # Received item and whisper
         items = self.player_manager.get_items(self.player2)
-        self.assertEqual(items[run.DROP_ITEM], 0)
+        self.assertNotIn(run.DROP_ITEM, items)
         self.assertEqual(self.bot.send_whisper.call_count, 0)
 
 

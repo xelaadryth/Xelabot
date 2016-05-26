@@ -9,9 +9,8 @@ import settings
 class TestPlayerManager(unittest.TestCase):
     def setUp(self):
         bot = MagicMock()
-        with patch('os.makedirs'):
-            with patch('os.listdir'):
-                self.player_manager = QuestPlayerManager(bot)
+        with patch('twitch.player_manager.PlayerManager.load_player_stats_from_db'):
+            self.player_manager = QuestPlayerManager(bot)
 
         self.existing_player = 'Existing_Player'
         self.new_player = 'New_Player'
@@ -77,7 +76,6 @@ class TestPlayerManager(unittest.TestCase):
         items = self.player_manager.get_items(self.new_player)
         self.assertEqual(items[item], 3)
         self.assertNotIn(missing_item, items)
-        self.assertEqual(items[missing_item], 0)
 
         self.player_manager.penalize(self.new_player, 32, 25, item=[item, missing_item, item], prestige_benefits=True)
         self.assertEqual(self.player_manager.get_gold(self.new_player), 32)
@@ -92,8 +90,6 @@ class TestPlayerManager(unittest.TestCase):
         items = self.player_manager.get_items(self.new_player)
         self.assertNotIn(item, items)
         self.assertNotIn(missing_item, items)
-        self.assertEqual(items[item], 0)
-        self.assertEqual(items[missing_item], 0)
 
 
 if __name__ == '__main__':

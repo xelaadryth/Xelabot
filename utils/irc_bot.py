@@ -1,7 +1,7 @@
 import socket
 import time
 
-from utils.timer_thread import Timer
+from utils.timer import Timer
 import settings
 
 

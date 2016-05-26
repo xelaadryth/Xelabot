@@ -117,10 +117,11 @@ class QuestPlayerManager(PlayerManager):
                 self.__remove_item(username, single_item)
         else:
             username = username.lower()
-            self.players[username]['items'][item] -= 1
+            if item in self.players[username]['items']:
+                self.players[username]['items'][item] -= 1
 
-            if self.players[username]['items'][item] <= 0:
-                del self.players[username]['items'][item]
+                if self.players[username]['items'][item] <= 0:
+                    del self.players[username]['items'][item]
 
     def remove_item(self, username, item):
         """

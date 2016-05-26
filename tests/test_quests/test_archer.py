@@ -10,9 +10,8 @@ from quest_bot.quest_player_manager import QuestPlayerManager
 class TestArcher(unittest.TestCase):
     def setUp(self):
         bot = MagicMock()
-        with patch('os.makedirs'):
-            with patch('os.listdir'):
-                self.player_manager = QuestPlayerManager(bot)
+        with patch('twitch.player_manager.PlayerManager.load_player_stats_from_db'):
+            self.player_manager = QuestPlayerManager(bot)
         self.channel = MagicMock()
         self.channel.channel_manager.bot.player_manager = self.player_manager
         self.starting_gold = 1000
