@@ -4,6 +4,9 @@ import os
 import sys
 
 
+VERSION = '2.0.0.0'
+
+
 ########################################################################################################################
 #  Required settings; filled from file
 ########################################################################################################################
@@ -37,7 +40,7 @@ IRC_JOIN_SLEEP_TIME = 0.35
 # Bot settings
 AUTO_RESTART_ON_CRASH = False
 DATA_PATH = 'data'
-SETTINGS_FILE_PATH = 'settings.txt'
+SETTINGS_FILENAME = 'settings.txt'
 CHANNEL_DATA_PATH = os.path.join(DATA_PATH, 'channels')
 PLAYER_DATA_PATH = os.path.join(DATA_PATH, 'players')
 
@@ -52,6 +55,13 @@ PRESTIGE_GOLD_AMP = 0.05
 # How long there is for user interaction between quest advance sections
 QUEST_DURATION = 12
 QUEST_DEFAULT_COOLDOWN = 90
+
+########################################################################################################################
+# Sites and urls
+########################################################################################################################
+BASE_URL = 'https://dl.dropboxusercontent.com/u/90882877/Xelabot/'
+VERSION_FILENAME = 'version.txt'
+EXECUTABLE_FILENAME = 'xelabot.exe'
 
 ########################################################################################################################
 # Dynamically loaded settings
@@ -72,9 +82,9 @@ DEFAULT_SETTINGS_JSON = OrderedDict([
 
 
 def load_settings_file():
-    if os.path.isfile(SETTINGS_FILE_PATH):
-        with open(SETTINGS_FILE_PATH) as json_data:
-            temp_settings_json = json.load(json_data, object_pairs_hook=OrderedDict)
+    if os.path.isfile(SETTINGS_FILENAME):
+        with open(SETTINGS_FILENAME) as read_file:
+            temp_settings_json = json.load(read_file, object_pairs_hook=OrderedDict)
 
         # Iterate over known variable names and change all the module's variables to the ones from file, if any
         module = sys.modules[__name__]
@@ -94,5 +104,5 @@ def load_settings_file():
         settings_json = DEFAULT_SETTINGS_JSON
 
     # Write to file to make sure we have the latest data
-    with open(SETTINGS_FILE_PATH, 'w') as json_data:
-        json.dump(settings_json, json_data, indent=4)
+    with open(SETTINGS_FILENAME, 'w') as write_file:
+        json.dump(settings_json, write_file, indent=4)

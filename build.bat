@@ -1,2 +1,2 @@
 call venv/Scripts/activate
-pyinstaller xelabot.py
+pyinstaller --onefile --icon=xelabot.ico xelabot.py

@@ -1,8 +1,10 @@
 import time
 import traceback
 
-import settings
+from utils.cmd import pause
 from quest_bot.quest_bot import QuestBot
+import settings
+from utils.auto_update import clear_temp_files, try_update
 
 
 def run_bot():
@@ -15,7 +17,7 @@ def run_bot():
         bot.connect()
         bot.run()
     except Exception as e:
-        print("BOT CRASHED: " + repr(e))
+        print('BOT CRASHED: ' + repr(e))
         traceback.print_exc()
 
         # If the bot crashes for whatever reason, restart it
@@ -23,8 +25,16 @@ def run_bot():
             time.sleep(5)
             run_bot()
 
-        input('Press Enter to continue...')
+        pause()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+    clear_temp_files()
+    try:
+        try_update()
+    except Exception as e:
+        print('Update failed: ' + repr(e))
+        traceback.print_exc()
+        clear_temp_files()
+        print('Continuing execution as normal!')
     settings.load_settings_file()
     run_bot()

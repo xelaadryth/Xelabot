@@ -7,7 +7,7 @@ xelabot.spec
 venv
 
 # Local copy of settings file
-my_settings.txt
+settings.txt
 
 # Local data
 data

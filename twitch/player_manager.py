@@ -37,8 +37,8 @@ class PlayerManager:
         if not os.path.exists(settings.PLAYER_DATA_PATH):
             os.makedirs(settings.PLAYER_DATA_PATH)
         for filename in os.listdir(settings.PLAYER_DATA_PATH):
-            with open(os.path.join(settings.PLAYER_DATA_PATH, filename)) as json_data:
-                player_settings = json.load(json_data)
+            with open(os.path.join(settings.PLAYER_DATA_PATH, filename)) as read_file:
+                player_settings = json.load(read_file)
 
             self.players[player_settings['name']] = player_settings
 
