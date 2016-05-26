@@ -1,5 +1,6 @@
-from sqlitedict import SqliteDict
-
+import json
+import os
+import settings
 
 from .channel import Channel
 import settings
@@ -33,7 +34,6 @@ class ChannelManager:
     def __init__(self, bot):
         self.bot = bot
         self.channels = self.ChannelDict(self)
-        self.channel_db = SqliteDict(settings.CHANNEL_DB_FILE, tablename='channels', autocommit=True)
 
         self.initialized = False
         self.load_settings_from_db()
@@ -43,20 +43,29 @@ class ChannelManager:
         """
         Loads all valid data from database into the ChannelManager.
         """
-        for channel_name, channel_settings in self.channel_db.items():
-            for key in self.channels[channel_name].channel_settings:
+        # Load up all the existing channel information
+        if not os.path.exists(settings.CHANNEL_DATA_PATH):
+            os.makedirs(settings.CHANNEL_DATA_PATH)
+        for filename in os.listdir(settings.CHANNEL_DATA_PATH):
+            with open(os.path.join(settings.CHANNEL_DATA_PATH, filename)) as read_file:
+                channel_settings = json.load(read_file)
+
+            default_channel_settings = self.channels[channel_settings['name']].channel_settings
+            for key in default_channel_settings:
                 if key in channel_settings:
-                    self.channels[channel_name].channel_settings[key] = channel_settings[key]
+                    default_channel_settings[key] = channel_settings[key]
 
-            self.channels[channel_name].initialize()
+            self.channels[channel_settings['name']].initialize()
 
-    def save_channel_data(self, channel_name, channel_data):
+    @staticmethod
+    def save_channel_data(channel_name, channel_data):
         """
         Saves a specific channel to persistent storage.
         :param channel_name: str - The owner of the channel you want to save
         :param channel_data: dict - The channel data you are saving
         """
-        self.channel_db[channel_name] = channel_data
+        with open(os.path.join(settings.CHANNEL_DATA_PATH, channel_name + '.txt'), 'w') as channel_file:
+            json.dump(channel_data, channel_file, indent=4, sort_keys=True)
 
     def save_channel(self, channel_name):
         """

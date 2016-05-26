@@ -117,6 +117,7 @@ class QuestPlayerManager(PlayerManager):
                 self.__remove_item(username, single_item)
         else:
             username = username.lower()
+            # If we don't have the item, do nothing
             if item in self.players[username]['items']:
                 self.players[username]['items'][item] -= 1
 

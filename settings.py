@@ -43,8 +43,9 @@ IRC_JOIN_SLEEP_TIME = 0.35
 ########################################################################################################################
 # Local file paths
 ########################################################################################################################
-PLAYER_DB_FILE = 'player.db'
-CHANNEL_DB_FILE = 'channel.db'
+DATA_FOLDER = 'data'
+PLAYER_DATA_PATH = os.path.join(DATA_FOLDER, 'players')
+CHANNEL_DATA_PATH = os.path.join(DATA_FOLDER, 'channels')
 SETTINGS_FILENAME = 'settings.txt'
 
 ########################################################################################################################
