@@ -13,7 +13,6 @@ A game in the form of a Twitch chat bot.
  - faq.txt
 
 ## To Do List:
-- Replace text files with SQLite
 - Rename currency
 - Faster mod cooldown for bot message send
 - All quest commands can take whispers (as optional setting?)
