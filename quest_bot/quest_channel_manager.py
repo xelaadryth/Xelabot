@@ -31,9 +31,9 @@ class QuestChannelManager(ChannelManager):
             self.channels[channel_name].quest_manager.disable_questing()
             self.channels[channel_name].channel_settings['quest_enabled'] = False
             self.save_channel(channel_name)
-            self.bot.send_msg(channel_name, "Questing disabled.")
+            self.bot.send_msg(channel_name, 'Questing disabled.')
         else:
-            self.bot.send_msg(channel_name, "Questing already disabled.")
+            self.bot.send_msg(channel_name, 'Questing already disabled.')
 
     def set_quest_cooldown(self, channel_name, cooldown):
         """

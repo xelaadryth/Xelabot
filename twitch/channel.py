@@ -75,14 +75,3 @@ class Channel:
         """
         self.channel_manager.leave_channel(display_name.lower())
         self.send_msg('{} has now left {}\'s channel.'.format(settings.BOT_NAME, display_name))
-
-        # TODO: Add back in loyalty commands with https://tmi.twitch.tv/group/user/USERNAME_HERE/chatters
-        # Check loyalty commands
-        # if msg == "!" + self.channel_settings['loyalty_name']:
-        #     if user == self.owner:
-        #         self.send_msg("You are the owner of this channel.")
-        #     elif user in self.channel_settings['loyalty']:
-        #         self.send_msg(user + " has " + str(self.channel_settings['loyalty'][user]) + " " +
-        #                       self.channel_settings['loyalty_name'] + ".")
-        #     else:
-        #         self.send_msg(user + " has 0 " + self.channel_settings['loyalty_name'] + ".")

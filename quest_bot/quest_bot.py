@@ -3,6 +3,7 @@ from .quest_player_manager import QuestPlayerManager
 import settings
 from twitch.twitch_bot import TwitchBot
 from utils.command_set import CommandSet
+from utils.logger import log
 
 
 class QuestBot(TwitchBot):
@@ -18,10 +19,10 @@ class QuestBot(TwitchBot):
         super().__init__(bot_name, owner_name, oauth)
 
     def initialize(self):
-        print('Initializing channel manager...')
+        log('Initializing channel manager...')
         self.channel_manager = QuestChannelManager(self)
 
-        print('Initializing player manager...')
+        log('Initializing player manager...')
         self.player_manager = QuestPlayerManager(self)
 
         # Commands for direct whispers to the bot

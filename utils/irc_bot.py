@@ -1,8 +1,9 @@
 import socket
 import time
 
-from utils.timing import Timer
 import settings
+from utils.timing import Timer
+from utils.logger import log
 
 
 class IRCBot:
@@ -31,7 +32,7 @@ class IRCBot:
         :param msg_str:
         :return:
         """
-        print('> ' + msg_str)
+        log('> ' + msg_str)
         self.irc_sock.send(bytes(msg_str + '\r\n', 'UTF-8'))
 
     def send_raw(self, msg_str):
@@ -78,7 +79,7 @@ class IRCBot:
         """
         Connect to the IRC server.
         """
-        print('Connecting to IRC service...')
+        log('Connecting to IRC service...')
         self.irc_sock.connect((settings.IRC_SERVER, settings.IRC_PORT))
         self.send_raw_instant('PASS ' + self.oauth)
         self.send_raw_instant('NICK ' + self.nickname)
@@ -97,7 +98,7 @@ class IRCBot:
         :param raw_msg: str - The IRC raw message
         """
         if raw_msg:
-            print(raw_msg)
+            log(raw_msg)
 
         lower_msg = raw_msg.lower()
 

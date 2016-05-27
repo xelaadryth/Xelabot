@@ -5,6 +5,9 @@ import sys
 import urllib.request
 
 
+from utils.logger import log
+
+
 TEMP = 'temp_'
 RENAME_SCRIPT_FILENAME = TEMP + 'rename.bat'
 NEW_EXECUTABLE_FILENAME = TEMP + settings.EXECUTABLE_FILENAME
@@ -14,7 +17,7 @@ RENAME_BATCH_SCRIPT = ':: Waiting for xelabot.exe to close\ntimeout 5\nmove /y {
 
 
 def update():
-    print('Updating...')
+    log('Updating...')
     urllib.request.urlretrieve(settings.BASE_URL + settings.EXECUTABLE_FILENAME, TEMP + settings.EXECUTABLE_FILENAME)
 
     with open(RENAME_SCRIPT_FILENAME, 'w') as write_file:
@@ -32,7 +35,7 @@ def clear_temp_files():
 
 
 def latest_version():
-    print('Checking version...')
+    log('Checking version...')
     with urllib.request.urlopen(settings.BASE_URL + settings.VERSION_FILENAME) as version_file:
         newest_version = version_file.readline().decode(encoding='UTF-8').strip()
 
@@ -51,4 +54,4 @@ def try_update():
         if response.lower() in ['y', 'yes']:
             update()
         else:
-            print('Well, we can always update later. :(')
+            log('Well, we can always update later. :(')

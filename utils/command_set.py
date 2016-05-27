@@ -1,4 +1,4 @@
-import traceback
+from utils.logger import log_error
 
 
 class CommandSet:
@@ -39,8 +39,7 @@ class CommandSet:
             for child in self.children:
                 child.execute_command(display_name, full_command)
         except Exception as e:
-            print('Error executing command {}: {}'.format(command, repr(e)))
-            traceback.print_exc()
+            log_error('Error executing command {}'.format(command), e)
 
     def add_commands(self, exact_match_commands=None, starts_with_commands=None):
         """

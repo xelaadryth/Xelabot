@@ -1,3 +1,8 @@
+# Local generated files
+settings.txt
+log.txt
+data
+
 # PyInstaller build files
 dist
 build
@@ -5,12 +10,6 @@ xelabot.spec
 
 # virtualenv
 venv
-
-# Local copy of settings file
-settings.txt
-
-# Local data
-data
 
 # PyCharm
 .idea

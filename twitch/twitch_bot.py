@@ -3,9 +3,10 @@ import traceback
 
 from .channel_manager import ChannelManager
 from .player_manager import PlayerManager
+import settings
 from utils.command_set import CommandSet
 from utils.irc_bot import IRCBot
-import settings
+from utils.logger import log, log_error
 
 
 class TwitchBot(IRCBot):
@@ -28,10 +29,10 @@ class TwitchBot(IRCBot):
         self.initialize()
 
     def initialize(self):
-        print('Initializing channel manager...')
+        log('Initializing channel manager...')
         self.channel_manager = ChannelManager(self)
 
-        print('Initializing player manager...')
+        log('Initializing player manager...')
         self.player_manager = PlayerManager(self)
 
         # Commands for direct whispers to the bot
@@ -59,7 +60,7 @@ class TwitchBot(IRCBot):
 
         for channel_name, channel in self.channel_manager.channels.items():
             if channel.channel_settings['auto_join']:
-                print('Joining channel: {}...'.format(channel_name))
+                log('Joining channel: {}...'.format(channel_name))
                 # Join rate-limiting is at a rate of 50 joins per 15 seconds
                 self.join_channel(channel_name)
 
@@ -162,7 +163,7 @@ class TwitchBot(IRCBot):
 
             return display_name, target_name, msg, is_mod, is_sub
         except Exception as e:
-            print('Unable to parse message "{}": {}'.format(raw_msg, repr(e)))
+            log_error('Unable to parse message "{}"'.format(raw_msg), e)
             return None
 
     def handle_channel_msg(self, raw_msg):
@@ -184,7 +185,7 @@ class TwitchBot(IRCBot):
 
         # Skip the message if it's from an invalid channel; Xelabot should only be listening to channels it's in.
         if channel_name not in self.channel_manager.channels.keys():
-            print("Message from channel not added to Channel Manager: #" + channel_name)
+            log('Message from channel not added to Channel Manager: #' + channel_name)
             return
 
         channel = self.channel_manager.channels[channel_name]
@@ -209,7 +210,7 @@ class TwitchBot(IRCBot):
         display_name, whisper_target, msg, is_mod, is_sub = self.parse_msg(raw_msg)
 
         if whisper_target != self.nickname.lower():
-            print('Invalid whisper target: {}'.format(whisper_target))
+            log('Invalid whisper target: {}'.format(whisper_target))
             return
 
         self.whisper_commands.execute_command(display_name, msg)
@@ -234,5 +235,4 @@ class TwitchBot(IRCBot):
             elif raw_msg_tokens[2] == 'WHISPER':
                 self.handle_whisper(raw_msg)
         except Exception as e:
-            print('IRC message handler error: {}'.format(repr(e)))
-            traceback.print_exc()
+            log_error('IRC message handler error', e)
