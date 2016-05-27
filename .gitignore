@@ -1,7 +1,9 @@
 # Local generated files
 settings.txt
 log.txt
+error.txt
 data
+xelabot.exe
 
 # PyInstaller build files
 dist

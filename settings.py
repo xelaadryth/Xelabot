@@ -4,7 +4,7 @@ import os
 import sys
 
 
-VERSION = '2.0.1.5'
+VERSION = '2.0.1.6'
 
 
 ########################################################################################################################
@@ -17,6 +17,8 @@ BOT_OAUTH = 'oauth:bot_oauth_code'
 ########################################################################################################################
 #  Optional settings; filled from file
 ########################################################################################################################
+# Auto-update the executable without prompting
+AUTO_UPDATE_EXECUTABLE = False
 # Log everything to file
 LOG_TO_FILE = False
 # Bot setting to restart if it crashes
@@ -45,6 +47,7 @@ IRC_JOIN_SLEEP_TIME = 0.35
 # Local file paths
 ########################################################################################################################
 LOG_FILENAME = 'log.txt'
+ERROR_FILENAME = 'error.txt'
 DATA_FOLDER = 'data'
 PLAYER_DATA_PATH = os.path.join(DATA_FOLDER, 'players')
 CHANNEL_DATA_PATH = os.path.join(DATA_FOLDER, 'channels')
@@ -84,9 +87,10 @@ DEFAULT_SETTINGS_JSON = OrderedDict([
         ('BOT_OAUTH', BOT_OAUTH)
     ])),
     (OPTIONAL_STRING, OrderedDict([
-        ('LOG_TO_FILE', LOG_TO_FILE),
+        ('ENABLE_REQUEST_JOIN', ENABLE_REQUEST_JOIN),
+        ('AUTO_UPDATE_EXECUTABLE', AUTO_UPDATE_EXECUTABLE),
         ('AUTO_RESTART_ON_CRASH', AUTO_RESTART_ON_CRASH),
-        ('ENABLE_REQUEST_JOIN', ENABLE_REQUEST_JOIN)
+        ('LOG_TO_FILE', LOG_TO_FILE)
     ]))]
 )
 

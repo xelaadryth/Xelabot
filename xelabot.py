@@ -1,5 +1,4 @@
 import time
-import traceback
 
 from quest_bot.quest_bot import QuestBot
 import settings
@@ -17,8 +16,8 @@ def run_bot():
         bot = QuestBot(settings.BOT_NAME, settings.BROADCASTER_NAME, settings.BOT_OAUTH)
         bot.connect()
         bot.run()
-    except Exception as exc:
-        log_error('Bot crashed', exc)
+    except Exception as e2:
+        log_error('Bot crashed', e2)
 
         # If the bot crashes for whatever reason, restart it
         if settings.AUTO_RESTART_ON_CRASH:
@@ -31,8 +30,8 @@ if __name__ == '__main__':
     clear_temp_files()
     try:
         try_update()
-    except Exception as exc:
-        log_error('Update failed', exc)
+    except Exception as e:
+        log_error('Update failed', e)
         clear_temp_files()
         log('Continuing execution as normal!')
     settings.load_settings_file()
