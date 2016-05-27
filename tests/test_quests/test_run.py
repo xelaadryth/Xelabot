@@ -1,39 +1,20 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-from quest.quest_manager import QuestManager
 from quest.quests import run
-from quest_bot.quest_player_manager import QuestPlayerManager
 import settings
+from tests.test_quests.base_class import TestBase
 
 
 @patch('twitch.player_manager.PlayerManager.save_player_data')
-class TestRun(unittest.TestCase):
-    def setUp(self):
-        self.bot = MagicMock()
-        with patch('twitch.player_manager.PlayerManager.load_player_stats_from_db'):
-            self.player_manager = QuestPlayerManager(self.bot)
-        self.channel = MagicMock()
-        self.channel.channel_manager.bot = self.bot
-        self.channel.channel_manager.bot.player_manager = self.player_manager
-        self.starting_gold = 1000
-        # Everyone is max level
-        self.starting_exp = settings.EXP_LEVELS[settings.LEVEL_CAP]
+class TestRun(TestBase):
+    quest_constructor = run.Run
+    num_start_players = 4
+    starting_gold = 1000
+    starting_exp = settings.EXP_LEVELS[settings.LEVEL_CAP]
 
-        self.level_difference3 = run.MONSTER_LEVEL - (3 * settings.LEVEL_CAP)
-        self.level_difference4 = run.MONSTER_LEVEL - (4 * settings.LEVEL_CAP)
-
-        self.player1 = 'Player1'
-        self.player2 = 'Player2'
-        self.player3 = 'Player3'
-        self.player4 = 'Player4'
-        self.party = [self.player1, self.player2, self.player3, self.player4]
-        with patch('twitch.player_manager.PlayerManager.save_player_data'):
-            self.player_manager.reward(self.party, gold=self.starting_gold, exp=self.starting_exp)
-
-        self.quest_manager = QuestManager(self.channel)
-        self.quest_manager.party = self.party
-        self.quest = run.Run(self.quest_manager)
+    level_difference3 = run.MONSTER_LEVEL - (3 * settings.LEVEL_CAP)
+    level_difference4 = run.MONSTER_LEVEL - (4 * settings.LEVEL_CAP)
 
     def test_escape(self, _):
         self.quest_manager.start_quest(self.quest)
