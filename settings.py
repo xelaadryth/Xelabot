@@ -4,7 +4,7 @@ import os
 import sys
 
 
-VERSION = '2.0.1.3'
+VERSION = '2.0.1.4'
 
 
 ########################################################################################################################
@@ -18,6 +18,8 @@ BOT_OAUTH = 'oauth:bot_oauth_code'
 #  Optional settings; filled from file
 ########################################################################################################################
 
+# Log everything to file
+LOG_TO_FILE = False
 # Bot setting to restart if it crashes
 AUTO_RESTART_ON_CRASH = False
 # Lets other people use a shared instance of your bot in their channel; disable if bot gets laggy
@@ -83,6 +85,7 @@ DEFAULT_SETTINGS_JSON = OrderedDict([
         ('BOT_OAUTH', BOT_OAUTH)
     ])),
     (OPTIONAL_STRING, OrderedDict([
+        ('LOG_TO_FILE', LOG_TO_FILE),
         ('AUTO_RESTART_ON_CRASH', AUTO_RESTART_ON_CRASH),
         ('ENABLE_REQUEST_JOIN', ENABLE_REQUEST_JOIN)
     ]))]

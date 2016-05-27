@@ -32,6 +32,8 @@ def clear_temp_files():
         os.remove(RENAME_SCRIPT_FILENAME)
     if os.path.isfile(NEW_EXECUTABLE_FILENAME):
         os.remove(NEW_EXECUTABLE_FILENAME)
+    if os.path.isfile(settings.LOG_FILENAME):
+        os.remove(settings.LOG_FILENAME)
 
 
 def latest_version():
