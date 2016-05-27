@@ -6,7 +6,6 @@ from quest_bot.quest_player_manager import QuestPlayerManager
 from quest.quest import Quest
 
 
-@patch('twitch.player_manager.PlayerManager.save_player_data')
 class TestBase(unittest.TestCase):
     # Overwrite these!
     num_start_players = 5
@@ -15,6 +14,14 @@ class TestBase(unittest.TestCase):
     starting_exp = 100
 
     def setUp(self):
+        player_save_patcher = patch('twitch.player_manager.PlayerManager.save_player_data')
+        player_load_patcher = patch('twitch.player_manager.PlayerManager.load_player_stats_from_db')
+        randint_0_patcher = patch('quest.quests.{}.randint'.format(self.quest_constructor.__name__.lower()),
+                                  return_value=0)
+        for patcher in [player_save_patcher, player_load_patcher, randint_0_patcher]:
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
         self.bot = MagicMock()
         with patch('twitch.player_manager.PlayerManager.load_player_stats_from_db'):
             self.player_manager = QuestPlayerManager(self.bot)

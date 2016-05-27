@@ -6,7 +6,6 @@ import settings
 from tests.test_quests.base_class import TestBase
 
 
-@patch('twitch.player_manager.PlayerManager.save_player_data')
 class TestRun(TestBase):
     quest_constructor = run.Run
     num_start_players = 4
@@ -16,7 +15,7 @@ class TestRun(TestBase):
     level_difference3 = run.MONSTER_LEVEL - (3 * settings.LEVEL_CAP)
     level_difference4 = run.MONSTER_LEVEL - (4 * settings.LEVEL_CAP)
 
-    def test_escape(self, _):
+    def test_escape(self):
         self.quest_manager.start_quest(self.quest)
 
         self.quest_manager.commands.execute_command(self.player1, self.quest.escape_word)
@@ -28,8 +27,7 @@ class TestRun(TestBase):
         for player in self.party:
             self.assertEqual(self.player_manager.get_gold(player), self.starting_gold)
             self.assertEqual(self.player_manager.get_exp(player), self.starting_exp)
-        with patch('quest.quests.run.randint', return_value=0):
-            self.quest_manager.commands.execute_command(self.player3, self.quest.escape_word)
+        self.quest_manager.commands.execute_command(self.player3, self.quest.escape_word)
 
         for player in self.party:
             if player == self.player4:
@@ -39,7 +37,7 @@ class TestRun(TestBase):
                 self.assertEqual(self.player_manager.get_gold(player), self.starting_gold + run.GOLD_REWARD)
                 self.assertEqual(self.player_manager.get_exp(player), self.starting_exp + run.EXP_REWARD)
 
-    def test_escape_timeout(self, _):
+    def test_escape_timeout(self):
         self.quest_manager.start_quest(self.quest)
 
         self.quest_manager.commands.execute_command(self.player1, self.quest.escape_word)
@@ -54,8 +52,7 @@ class TestRun(TestBase):
 
         # Simulate timing out and the callback for quest_advance getting called
         self.quest_manager.kill_quest_advance_timer()
-        with patch('quest.quests.run.randint', return_value=0):
-            self.quest_manager.quest_advance()
+        self.quest_manager.quest_advance()
 
         for player in self.party:
             if player in [self.player3, self.player4]:
@@ -65,7 +62,7 @@ class TestRun(TestBase):
                 self.assertEqual(self.player_manager.get_gold(player), self.starting_gold + run.GOLD_REWARD)
                 self.assertEqual(self.player_manager.get_exp(player), self.starting_exp + run.EXP_REWARD)
 
-    def test_boss_battle_timeout(self, _):
+    def test_boss_battle_timeout(self):
         self.quest_manager.start_quest(self.quest)
 
         # Simulate timing out and the callback for quest_advance getting called
@@ -78,14 +75,13 @@ class TestRun(TestBase):
 
         # Simulate timing out and the callback for quest_advance getting called
         self.quest_manager.kill_quest_advance_timer()
-        with patch('quest.quests.run.randint', return_value=0):
-            self.quest_manager.quest_advance()
+        self.quest_manager.quest_advance()
 
         for player in self.party:
             self.assertEqual(self.player_manager.get_gold(player), self.starting_gold - run.GOLD_PENALTY)
             self.assertEqual(self.player_manager.get_exp(player), self.starting_exp)
 
-    def test_boss_battle_try_timeout(self, _):
+    def test_boss_battle_try_timeout(self):
         self.quest_manager.start_quest(self.quest)
 
         # Simulate timing out and the callback for quest_advance getting called
@@ -106,14 +102,13 @@ class TestRun(TestBase):
 
         # Simulate timing out and the callback for quest_advance getting called
         self.quest_manager.kill_quest_advance_timer()
-        with patch('quest.quests.run.randint', return_value=0):
-            self.quest_manager.quest_advance()
+        self.quest_manager.quest_advance()
 
         for player in self.party:
             self.assertEqual(self.player_manager.get_gold(player), self.starting_gold - run.GOLD_PENALTY)
             self.assertEqual(self.player_manager.get_exp(player), self.starting_exp)
 
-    def test_boss_battle_surround_fail(self, _):
+    def test_boss_battle_surround_fail(self):
         self.quest_manager.start_quest(self.quest)
 
         # Simulate timing out and the callback for quest_advance getting called
@@ -132,14 +127,13 @@ class TestRun(TestBase):
             self.assertEqual(self.player_manager.get_gold(player), self.starting_gold)
             self.assertEqual(self.player_manager.get_exp(player), self.starting_exp)
 
-        with patch('quest.quests.run.randint', return_value=0):
-            self.quest_manager.commands.execute_command(self.player4, '!left')
+        self.quest_manager.commands.execute_command(self.player4, '!left')
 
         for player in self.party:
             self.assertEqual(self.player_manager.get_gold(player), self.starting_gold - run.GOLD_PENALTY)
             self.assertEqual(self.player_manager.get_exp(player), self.starting_exp)
 
-    def test_boss_battle_fight_fail_hard(self, _):
+    def test_boss_battle_fight_fail_hard(self):
         self.quest_manager.start_quest(self.quest)
 
         # Simulate timing out and the callback for quest_advance getting called
@@ -165,7 +159,7 @@ class TestRun(TestBase):
                              self.starting_gold - run.GOLD_PENALTY_SMALL - level_difference)
             self.assertEqual(self.player_manager.get_exp(player), self.starting_exp)
 
-    def test_boss_battle_fight_fail_slight(self, _):
+    def test_boss_battle_fight_fail_slight(self):
         self.quest_manager.start_quest(self.quest)
 
         # Simulate timing out and the callback for quest_advance getting called
@@ -199,7 +193,7 @@ class TestRun(TestBase):
                                  self.starting_gold + run.GOLD_REWARD_MEDIUM + level_difference)
                 self.assertEqual(self.player_manager.get_exp(player), self.starting_exp + run.EXP_REWARD_MEDIUM)
 
-    def test_boss_battle_fight_win_item(self, _):
+    def test_boss_battle_fight_win_item(self):
         self.quest_manager.start_quest(self.quest)
 
         # Simulate timing out and the callback for quest_advance getting called
@@ -227,7 +221,7 @@ class TestRun(TestBase):
         self.assertEqual(items[run.DROP_ITEM], 1)
         self.assertEqual(self.bot.send_whisper.call_count, 1)
 
-    def test_boss_battle_fight_win_no_item(self, _):
+    def test_boss_battle_fight_win_no_item(self):
         self.quest_manager.start_quest(self.quest)
 
         # Simulate timing out and the callback for quest_advance getting called

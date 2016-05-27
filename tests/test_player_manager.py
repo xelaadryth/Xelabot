@@ -5,20 +5,23 @@ from quest_bot.quest_player_manager import QuestPlayerManager
 import settings
 
 
-@patch('twitch.player_manager.PlayerManager.save_player_data')
 class TestPlayerManager(unittest.TestCase):
     def setUp(self):
+        player_save_patcher = patch('twitch.player_manager.PlayerManager.save_player_data')
+        player_load_patcher = patch('twitch.player_manager.PlayerManager.load_player_stats_from_db')
+        for patcher in [player_save_patcher, player_load_patcher]:
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
         bot = MagicMock()
-        with patch('twitch.player_manager.PlayerManager.load_player_stats_from_db'):
-            self.player_manager = QuestPlayerManager(bot)
+        self.player_manager = QuestPlayerManager(bot)
 
         self.existing_player = 'Existing_Player'
         self.new_player = 'New_Player'
 
-        with patch('twitch.player_manager.PlayerManager.save_player_data'):
-            self.player_manager.add_gold(self.existing_player, 256)
+        self.player_manager.add_gold(self.existing_player, 256)
 
-    def test_exp_to_level(self, _):
+    def test_exp_to_level(self):
         self.assertEqual(self.player_manager.exp_to_level(0), 1)
         self.assertEqual(self.player_manager.exp_to_level(settings.EXP_LEVELS[1]), 1)
         self.assertEqual(self.player_manager.exp_to_level(settings.EXP_LEVELS[5]), 5)
@@ -28,14 +31,14 @@ class TestPlayerManager(unittest.TestCase):
         self.assertEqual(self.player_manager.exp_to_level(settings.EXP_LEVELS[settings.LEVEL_CAP] + 9999999),
                          settings.LEVEL_CAP)
 
-    def test_default_player(self, _):
+    def test_default_player(self):
         self.assertEqual(self.player_manager.get_gold(self.existing_player), 256)
         self.assertEqual(self.player_manager.get_exp(self.existing_player), 0)
 
         self.assertEqual(self.player_manager.get_gold(self.new_player), 0)
         self.assertEqual(self.player_manager.get_exp(self.new_player), 0)
 
-    def test_gold(self, _):
+    def test_gold(self):
         self.player_manager.add_gold(self.new_player, 128)
         self.assertEqual(self.player_manager.get_gold(self.new_player), 128)
         self.assertEqual(self.player_manager.get_exp(self.new_player), 0)
@@ -48,7 +51,7 @@ class TestPlayerManager(unittest.TestCase):
         self.assertEqual(self.player_manager.get_gold(self.new_player), 0)
         self.assertEqual(self.player_manager.get_exp(self.new_player), 0)
 
-    def test_prestige(self, _):
+    def test_prestige(self):
         self.assertFalse(self.player_manager.prestige(self.new_player))
         self.assertEqual(self.player_manager.get_prestige(self.new_player), 0)
 
@@ -64,7 +67,7 @@ class TestPlayerManager(unittest.TestCase):
         self.player_manager.add_gold(self.new_player, 128)
         self.assertGreater(self.player_manager.get_gold(self.new_player), 128)
 
-    def test_rewards(self, _):
+    def test_rewards(self):
         item = 'ItemName'
         missing_item = 'NonexistentItem'
         self.player_manager.reward(self.new_player, gold=64, exp=100, item=[item, item, item], prestige_benefits=True)
