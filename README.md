@@ -14,10 +14,11 @@ A game in the form of a Twitch chat bot.
 
 ## To Do List:
 - More quests!
-- sqlalchemy
+- More items/drops!
 - !questcooldown should display currently set cooldown
 - Rename currency
-- Faster mod cooldown for bot message send
+- Custom naming for monsters/items/etc. same way as default settings.txt generation
+- Faster mod cooldown for bot message send (threaded mutex increments/decrements to always be at max cap?)
 - All quest commands can take whispers (as optional setting?)
 - https://tmi.twitch.tv/group/user/USERNAME_HERE/chatters to check current viewers for loyalty bumps
 - Raid quest

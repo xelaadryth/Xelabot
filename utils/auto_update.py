@@ -8,12 +8,9 @@ import urllib.request
 from utils.logger import log
 
 
-TEMP = 'temp_'
-RENAME_SCRIPT_FILENAME = TEMP + 'rename.bat'
-NEW_EXECUTABLE_FILENAME = TEMP + settings.EXECUTABLE_FILENAME
 # Rename the executable and then run it
 RENAME_BATCH_SCRIPT = ':: Waiting for xelabot.exe to close\ntimeout 5\nmove /y {0} {1}\n{1}\n'.format(
-    NEW_EXECUTABLE_FILENAME, settings.EXECUTABLE_FILENAME)
+    settings.NEW_EXECUTABLE_FILENAME, settings.EXECUTABLE_FILENAME)
 
 
 def update_executable():
@@ -21,22 +18,13 @@ def update_executable():
     Get the replacement executable and swap it with the running one using a batch script.
     """
     log('Updating...')
-    urllib.request.urlretrieve(settings.BASE_URL + settings.EXECUTABLE_FILENAME, TEMP + settings.EXECUTABLE_FILENAME)
+    urllib.request.urlretrieve(settings.BASE_URL + settings.EXECUTABLE_FILENAME, settings.NEW_EXECUTABLE_FILENAME)
 
-    with open(RENAME_SCRIPT_FILENAME, 'w') as write_file:
+    with open(settings.RENAME_SCRIPT_FILENAME, 'w') as write_file:
         write_file.write(RENAME_BATCH_SCRIPT)
 
-    subprocess.Popen(RENAME_SCRIPT_FILENAME, creationflags=subprocess.CREATE_NEW_CONSOLE)
+    subprocess.Popen(settings.RENAME_SCRIPT_FILENAME, creationflags=subprocess.CREATE_NEW_CONSOLE)
     sys.exit(0)
-
-
-def clear_temp_files():
-    """
-    Delete all files that don't need to persist across runs.
-    """
-    for filename in [RENAME_SCRIPT_FILENAME, NEW_EXECUTABLE_FILENAME, settings.LOG_FILENAME, settings.ERROR_FILENAME]:
-        if os.path.isfile(filename):
-            os.remove(filename)
 
 
 def latest_version():

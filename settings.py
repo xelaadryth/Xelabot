@@ -44,14 +44,30 @@ IRC_SEND_COOLDOWN = 1.6
 IRC_JOIN_SLEEP_TIME = 0.35
 
 ########################################################################################################################
+# Sites and urls that should be hosted
+########################################################################################################################
+BASE_URL = 'https://dl.dropboxusercontent.com/u/90882877/Xelabot/'
+VERSION_FILENAME = 'version.txt'
+EXECUTABLE_FILENAME = 'xelabot.exe'
+HELP_FILENAME = 'faq.txt'
+
+########################################################################################################################
 # Local file paths
 ########################################################################################################################
+SETTINGS_FILENAME = 'settings.txt'
 LOG_FILENAME = 'log.txt'
 ERROR_FILENAME = 'error.txt'
 DATA_FOLDER = 'data'
 PLAYER_DATA_PATH = os.path.join(DATA_FOLDER, 'players')
 CHANNEL_DATA_PATH = os.path.join(DATA_FOLDER, 'channels')
-SETTINGS_FILENAME = 'settings.txt'
+
+########################################################################################################################
+# Temp files
+########################################################################################################################
+TEMP = 'temp_'
+RENAME_SCRIPT_FILENAME = TEMP + 'rename.bat'
+NEW_EXECUTABLE_FILENAME = TEMP + EXECUTABLE_FILENAME
+FILES_TO_CLEAR_ON_LOAD = [RENAME_SCRIPT_FILENAME, NEW_EXECUTABLE_FILENAME, LOG_FILENAME, ERROR_FILENAME]
 
 ########################################################################################################################
 # Quest settings
@@ -66,14 +82,6 @@ PRESTIGE_GOLD_AMP = 0.05
 # How long there is for user interaction between quest advance sections
 QUEST_DURATION = 12
 QUEST_DEFAULT_COOLDOWN = 90
-
-########################################################################################################################
-# Sites and urls that should be hosted
-########################################################################################################################
-BASE_URL = 'https://dl.dropboxusercontent.com/u/90882877/Xelabot/'
-VERSION_FILENAME = 'version.txt'
-EXECUTABLE_FILENAME = 'xelabot.exe'
-HELP_FILENAME = 'faq.txt'
 
 ########################################################################################################################
 # Dynamically loaded settings
