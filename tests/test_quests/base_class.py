@@ -15,7 +15,7 @@ class TestBase(unittest.TestCase):
 
     def setUp(self):
         player_save_patcher = patch('twitch.player_manager.PlayerManager.save_player_data')
-        player_load_patcher = patch('twitch.player_manager.PlayerManager.load_player_stats_from_db')
+        player_load_patcher = patch('twitch.player_manager.PlayerManager.load_player_data')
         randint_0_patcher = patch('quest.quests.{}.randint'.format(self.quest_constructor.__name__.lower()),
                                   return_value=0)
         for patcher in [player_save_patcher, player_load_patcher, randint_0_patcher]:
@@ -23,7 +23,7 @@ class TestBase(unittest.TestCase):
             self.addCleanup(patcher.stop)
 
         self.bot = MagicMock()
-        with patch('twitch.player_manager.PlayerManager.load_player_stats_from_db'):
+        with patch('twitch.player_manager.PlayerManager.load_player_data'):
             self.player_manager = QuestPlayerManager(self.bot)
         self.channel = MagicMock()
         self.channel.channel_manager.bot = self.bot

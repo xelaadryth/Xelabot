@@ -54,8 +54,8 @@ class TwitchBot(IRCBot):
             raise RuntimeError('Open up settings.txt and set the Twitch username for you and your bot!')
 
         # Bot should always join its own channel and the broadcaster's channel
-        self.channel_manager.enable_auto_join(settings.BOT_NAME.lower())
-        self.channel_manager.enable_auto_join(settings.BROADCASTER_NAME.lower())
+        self.channel_manager.enable_auto_join(settings.BOT_NAME)
+        self.channel_manager.enable_auto_join(settings.BROADCASTER_NAME)
 
         self.channel_manager.join_all_auto_join()
 
@@ -187,7 +187,7 @@ class TwitchBot(IRCBot):
         self.channel_manager.channels[channel_name].check_commands(display_name, msg, is_mod, is_sub)
 
         if msg in self.whisper_commands.exact_match_commands:
-            self.send_whisper(display_name.lower(), 'Try whispering that command to Xelabot instead!')
+            self.send_whisper(display_name, 'Try whispering that command to Xelabot instead!')
 
     def handle_whisper(self, raw_msg):
         """
@@ -202,7 +202,7 @@ class TwitchBot(IRCBot):
         """
         display_name, whisper_target, msg, is_mod, is_sub = self.parse_msg(raw_msg)
 
-        if whisper_target != self.nickname.lower():
+        if whisper_target.lower() != self.nickname.lower():
             log('Invalid whisper target: {}'.format(whisper_target))
             return
 

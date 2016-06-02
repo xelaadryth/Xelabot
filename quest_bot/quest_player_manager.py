@@ -41,8 +41,6 @@ class QuestPlayerManager(PlayerManager):
         :param gold: float - How much gold to give that player
         :param prestige_benefits: bool - Whether this gold increase is affected by prestige bonuses
         """
-        username = username.lower()
-
         # Don't magnify negative amounts of gold
         if prestige_benefits and gold > 0:
             gold *= 1 + self.players[username]['prestige'] * settings.PRESTIGE_GOLD_AMP
@@ -67,7 +65,6 @@ class QuestPlayerManager(PlayerManager):
         :param username: str - The player who you are modifying
         :param exp: float - How much exp to give that player
         """
-        username = username.lower()
         self.players[username]['exp'] += exp
 
     def add_exp(self, username, exp):
@@ -90,7 +87,6 @@ class QuestPlayerManager(PlayerManager):
             for single_item in item:
                 self.__add_item(username, single_item)
         else:
-            username = username.lower()
             if item not in self.players[username]['items']:
                 self.players[username]['items'][item] = 1
             else:
@@ -116,7 +112,6 @@ class QuestPlayerManager(PlayerManager):
             for single_item in item:
                 self.__remove_item(username, single_item)
         else:
-            username = username.lower()
             # If we don't have the item, do nothing
             if item in self.players[username]['items']:
                 self.players[username]['items'][item] -= 1
@@ -201,7 +196,6 @@ class QuestPlayerManager(PlayerManager):
         Gets how much gold a given player has.
         :param username: str - The player who you are modifying
         """
-        username = username.lower()
         return self.players[username]['gold']
 
     def get_exp(self, username):
@@ -209,7 +203,6 @@ class QuestPlayerManager(PlayerManager):
         Gets how much exp a given player has.
         :param username: str - The player who you are modifying
         """
-        username = username.lower()
         return self.players[username]['exp']
 
     @staticmethod
@@ -225,7 +218,6 @@ class QuestPlayerManager(PlayerManager):
         Gets what level a given player is.
         :param username: str - The player who you are modifying
         """
-        username = username.lower()
         exp = self.players[username]['exp']
 
         return self.exp_to_level(exp)
@@ -235,7 +227,6 @@ class QuestPlayerManager(PlayerManager):
         Gets what prestige level a given player is.
         :param username: str - The player who you are modifying
         """
-        username = username.lower()
         return self.players[username]['prestige']
 
     def get_items(self, username):
@@ -243,7 +234,6 @@ class QuestPlayerManager(PlayerManager):
         Gets the items of a given player.
         :param username: str - The player who you are modifying
         """
-        username = username.lower()
         return self.players[username]['items']
 
     def prestige(self, username):
@@ -252,7 +242,6 @@ class QuestPlayerManager(PlayerManager):
         :param username: str - The player who you are modifying
         :return: bool - True if successfully prestiged, False if no change
         """
-        username = username.lower()
         if self.players[username]['exp'] >= settings.EXP_LEVELS[settings.LEVEL_CAP] and (
                 self.players[username]['gold'] >= settings.PRESTIGE_COST):
             self.players[username]['exp'] -= settings.EXP_LEVELS[settings.LEVEL_CAP]
@@ -282,7 +271,6 @@ class QuestPlayerManager(PlayerManager):
         Whispers a player their relevant stats.
         :param username: str - The player who is requesting stat information
         """
-        username = username.lower()
         player = self.players[username]
         msg = '{}Level: {} ({} Exp), Gold: {}{}'.format(
             'Prestige: {}, '.format(player['prestige']) if player['prestige'] else '',
@@ -295,8 +283,6 @@ class QuestPlayerManager(PlayerManager):
         Saves a specific player's data to persistent storage. Deletes items with quantity 0 or less.
         :param username: str - The player whose data you want to save
         """
-        username = username.lower()
-
         # Remove duplicate items. Doesn't use a dict comprehension because items is a custom dict type
         remove_items = []
         for item, quantity in self.players[username]['items'].items():

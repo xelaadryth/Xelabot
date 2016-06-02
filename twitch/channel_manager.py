@@ -94,6 +94,7 @@ class ChannelManager:
         :param channel_name: str - The owner of the channel you want to save
         :param channel_data: dict - The channel data you are saving
         """
+        channel_name = channel_name.lower()
         with open(os.path.join(settings.CHANNEL_DATA_PATH, channel_name + '.txt'), 'w') as channel_file:
             json.dump(channel_data, channel_file, indent=4, sort_keys=True)
 

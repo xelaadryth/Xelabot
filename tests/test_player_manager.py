@@ -8,7 +8,7 @@ import settings
 class TestPlayerManager(unittest.TestCase):
     def setUp(self):
         player_save_patcher = patch('twitch.player_manager.PlayerManager.save_player_data')
-        player_load_patcher = patch('twitch.player_manager.PlayerManager.load_player_stats_from_db')
+        player_load_patcher = patch('twitch.player_manager.PlayerManager.load_player_data')
         for patcher in [player_save_patcher, player_load_patcher]:
             patcher.start()
             self.addCleanup(patcher.stop)

@@ -14,30 +14,30 @@ class PlayerManager:
     class PlayerDict(dict):
         """
         A dictionary that, when indexed at a non-existent player username, still returns a default player data
-        object that is also saved to persistent storage.
+        object that that can later be saved to persistent storage on edit.
         """
         def __init__(self, player_manager):
             super().__init__()
             self.player_manager = player_manager
 
-        def __missing__(self, key):
-            player_data = deepcopy(self.player_manager.default_player)
-            player_data['name'] = key
-            self[key] = player_data
+        def __missing__(self, player_name):
+            lower_player_name = player_name.lower()
+            if player_name != lower_player_name:
+                return self[lower_player_name]
 
-            if self.player_manager.initialized:
-                self.player_manager.save_player_data(key, player_data)
+            player_data = deepcopy(self.player_manager.default_player)
+            player_data['name'] = player_name
+            self[player_name] = player_data
+
             return player_data
 
     def __init__(self, bot):
         self.bot = bot
         self.players = self.PlayerDict(self)
 
-        self.initialized = False
-        self.load_player_stats_from_db()
-        self.initialized = True
+        self.load_player_data()
 
-    def load_player_stats_from_db(self):
+    def load_player_data(self):
         """
         Loads all valid data from database into the PlayerManager.
         """
@@ -46,13 +46,13 @@ class PlayerManager:
             os.makedirs(settings.PLAYER_DATA_PATH)
         for filename in os.listdir(settings.PLAYER_DATA_PATH):
             with open(os.path.join(settings.PLAYER_DATA_PATH, filename)) as read_file:
-                player_settings = json.load(read_file)
+                player_data = json.load(read_file)
 
-            default_player_settings = self.players[player_settings['name']]
+            player_settings = self.players[player_data['name']]
 
-            for key in default_player_settings:
-                if key in player_settings:
-                    default_player_settings[key] = player_settings[key]
+            for key in player_settings:
+                if key in player_data:
+                    player_settings[key] = player_data[key]
 
     @staticmethod
     def save_player_data(username, data):
@@ -69,7 +69,6 @@ class PlayerManager:
         Saves a specific player's data to persistent storage.
         :param username: str - The player whose data you want to save
         """
-        username = username.lower()
         player = self.players[username]
 
         self.save_player_data(username, player)
