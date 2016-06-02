@@ -1,5 +1,4 @@
 import time
-import traceback
 
 from .channel_manager import ChannelManager
 from .player_manager import PlayerManager
@@ -55,14 +54,10 @@ class TwitchBot(IRCBot):
             raise RuntimeError('Open up settings.txt and set the Twitch username for you and your bot!')
 
         # Bot should always join its own channel and the broadcaster's channel
-        self.channel_manager.add_channel(settings.BOT_NAME.lower())
-        self.channel_manager.add_channel(settings.BROADCASTER_NAME.lower())
+        self.channel_manager.enable_auto_join(settings.BOT_NAME.lower())
+        self.channel_manager.enable_auto_join(settings.BROADCASTER_NAME.lower())
 
-        for channel_name, channel in self.channel_manager.channels.items():
-            if channel.channel_settings['auto_join']:
-                log('Joining channel: {}...'.format(channel_name))
-                # Join rate-limiting is at a rate of 50 joins per 15 seconds
-                self.join_channel(channel_name)
+        self.channel_manager.join_all_auto_join()
 
     def send_msg(self, channel_name, msg_str):
         """
@@ -184,14 +179,12 @@ class TwitchBot(IRCBot):
             return
 
         # Skip the message if it's from an invalid channel; Xelabot should only be listening to channels it's in.
-        if channel_name not in self.channel_manager.channels.keys():
-            log('Message from channel not added to Channel Manager: #' + channel_name)
+        if channel_name not in self.channel_manager.channel_settings:
+            log('Skipping message from channel not added to Channel Manager: #' + channel_name)
             return
 
-        channel = self.channel_manager.channels[channel_name]
-
         # Channel specific commands, like quest commands
-        channel.check_commands(display_name, msg, is_mod, is_sub)
+        self.channel_manager.channels[channel_name].check_commands(display_name, msg, is_mod, is_sub)
 
         if msg in self.whisper_commands.exact_match_commands:
             self.send_whisper(display_name.lower(), 'Try whispering that command to Xelabot instead!')

@@ -8,7 +8,7 @@ from twitch.twitch_bot import TwitchBot
 class TestQuestBot(unittest.TestCase):
     def setUp(self):
         channel_save_patcher = patch('twitch.channel_manager.ChannelManager.save_channel_data')
-        channel_load_patcher = patch('twitch.channel_manager.ChannelManager.load_settings_from_db')
+        channel_load_patcher = patch('twitch.channel_manager.ChannelManager.load_channel_data')
         join_channel_patcher = patch.object(TwitchBot, 'join_channel')
         for patcher in [channel_save_patcher, channel_load_patcher]:
             patcher.start()
@@ -28,7 +28,7 @@ class TestQuestBot(unittest.TestCase):
         self.bot.connect()
 
         self.assertEqual(self.join_channel_mock.call_count, 2, 'Should join broadcaster and bot channels.')
-        self.assertEqual(len(self.bot.channel_manager.channels), 2,
+        self.assertEqual(len(self.bot.channel_manager.channel_settings), 2,
                          'ChannelManager should have broadcaster and bot channels.')
         self.assertEqual(self.socket_mock.connect.call_count, 1, 'Never tried connecting.')
         self.assertGreater(self.socket_mock.send.call_count, 0, 'Login info not sent properly.')
@@ -42,13 +42,13 @@ class TestQuestBot(unittest.TestCase):
         self.bot.channel_manager.leave_channel('Disabled')
         pre_connect_joined = 3
         self.assertEqual(self.join_channel_mock.call_count, pre_connect_joined, 'Should join two channels.')
-        self.assertEqual(len(self.bot.channel_manager.channels), 3,
+        self.assertEqual(len(self.bot.channel_manager.channel_settings), 3,
                          'ChannelManager should have 2 enabled channels and 1 disabled channel.')
         self.bot.connect()
         connect_joined = 4
         self.assertEqual(self.join_channel_mock.call_count, pre_connect_joined + connect_joined,
                          'Connecting should join broadcaster, bot, and 2 enabled channels.')
-        self.assertEqual(len(self.bot.channel_manager.channels), 5,
+        self.assertEqual(len(self.bot.channel_manager.channel_settings), 5,
                          'ChannelManager should have broadcaster, bot, 2 enabled channels, and 1 disabled channel.')
         self.bot.channel_manager.join_channel('Enabled1')
         self.bot.channel_manager.join_channel('Enabled2')
@@ -56,7 +56,7 @@ class TestQuestBot(unittest.TestCase):
         self.bot.channel_manager.join_channel('Enabled4')
         self.bot.channel_manager.leave_channel('Enabled1')
 
-        self.assertEqual(len(self.bot.channel_manager.channels), 7,
+        self.assertEqual(len(self.bot.channel_manager.channel_settings), 7,
                          'ChannelManager should have broadcaster, bot, 3 enabled channels and 2 disabled channel.')
         self.assertEqual(self.socket_mock.connect.call_count, 1, 'Never tried connecting.')
         self.assertGreater(self.socket_mock.send.call_count, 0, 'Login info not sent properly.')

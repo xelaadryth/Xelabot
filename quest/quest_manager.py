@@ -13,6 +13,7 @@ class QuestManager:
     """
     def __init__(self, channel):
         self.channel = channel
+        self.channel_settings = self.channel.channel_manager.channel_settings[self.channel.owner]
 
         self.quest = None
         self.party = []
@@ -21,7 +22,7 @@ class QuestManager:
         self.commands = CommandSet()
 
         # Channel is guaranteed to be initialized at this point
-        if self.channel.channel_settings['quest_enabled']:
+        if self.channel_settings['quest_enabled']:
             self.enable_questing()
         else:
             self.disable_questing()
@@ -70,7 +71,7 @@ class QuestManager:
         self.quest_state = QuestState.on_cooldown
         self.commands = CommandSet(exact_match_commands={
             '!quest': self.recharging_message})
-        self.start_quest_advance_timer(self.channel.channel_settings['quest_cooldown'])
+        self.start_quest_advance_timer(self.channel_settings['quest_cooldown'])
 
     def quest_advance(self):
         """
@@ -108,7 +109,7 @@ class QuestManager:
         :param display_name: str - The user that requested quest mode.
         """
         self.channel.send_msg('Sorry {}, quest take {} seconds to recharge. ({} seconds remaining.)'.format(
-            display_name, self.channel.channel_settings['quest_cooldown'], self.quest_timer.remaining()))
+            display_name, self.channel_settings['quest_cooldown'], self.quest_timer.remaining()))
 
     def create_party(self, display_name):
         """

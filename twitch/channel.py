@@ -1,27 +1,12 @@
-from copy import deepcopy
-
 import settings
 from utils.command_set import CommandSet
 
 
 class Channel:
-    default_settings = {
-        'name': None,
-        'auto_join': False
-    }
-
     def __init__(self, owner, channel_manager):
         self.owner = owner
-        self.channel_settings = deepcopy(self.default_settings)
         self.channel_manager = channel_manager
 
-        self.mod_commands = None
-        self.commands = None
-
-    def initialize(self):
-        """
-        Prepare the active sections of the Channel.
-        """
         self.mod_commands = CommandSet()
         self.commands = CommandSet(exact_match_commands={
             '!requestjoin': self.request_join,
