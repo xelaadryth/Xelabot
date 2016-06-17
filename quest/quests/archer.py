@@ -68,17 +68,17 @@ class Start(QuestSegment):
             self.quest.first_action = direction
 
     def timeout(self):
-        if self.quest.first_action:
-            loser = self.quest.party[0] if self.quest.party[0] != self.quest.first_player else self.quest.party[1]
+        if self.quest.first_player:
+            winner = self.quest.party[0] if self.quest.party[0] != self.quest.first_player else self.quest.party[1]
             gold_gained = GOLD_REWARD_BIG + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
             gold_lost = GOLD_PENALTY_SMALL + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
 
             msg = ('{0} didn\'t move and just used {1} as a decoy to distract the archer while making off '
                    'with the loot! What a scoundrel! {0} gains {2} exp and {3} gold while {1} loses {4} gold.'.format(
-                   self.quest.first_player, loser, EXP_REWARD, gold_gained, gold_lost))
+                   winner, self.quest.first_player, EXP_REWARD, gold_gained, gold_lost))
             self.channel.send_msg(msg)
-            self.reward(self.quest.first_player, gold=gold_gained, exp=EXP_REWARD)
-            self.penalize(loser, gold=gold_lost)
+            self.reward(winner, gold=gold_gained, exp=EXP_REWARD)
+            self.penalize(self.quest.first_player, gold=gold_lost)
         else:
             gold = GOLD_PENALTY_WAIT + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
             msg = ('Neither {0} nor {1} want to make a move, and eventually both get picked off like sitting ducks. '

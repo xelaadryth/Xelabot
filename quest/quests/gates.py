@@ -66,7 +66,7 @@ class Start(QuestSegment):
         self.complete_quest()
 
     def timeout(self):
-        if len(self.quest.guarding_players) == 0:
+        if not self.quest.guarding_players:
             gold = GOLD_REWARD_BIG + randint(-GOLD_VARIANCE, GOLD_VARIANCE)
 
             # Let the invaders in!

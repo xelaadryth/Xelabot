@@ -36,10 +36,10 @@ class TestArcher(TestBase):
         self.quest_manager.kill_quest_advance_timer()
         self.quest_manager.quest_advance()
 
-        self.assertEqual(self.player_manager.get_gold(self.player1), self.starting_gold + archer.GOLD_REWARD_BIG)
-        self.assertEqual(self.player_manager.get_gold(self.player2), self.starting_gold - archer.GOLD_PENALTY_SMALL)
-        self.assertEqual(self.player_manager.get_exp(self.player1), self.starting_exp + archer.EXP_REWARD)
-        self.assertEqual(self.player_manager.get_exp(self.player2), self.starting_exp)
+        self.assertEqual(self.player_manager.get_gold(self.player1), self.starting_gold - archer.GOLD_PENALTY_SMALL)
+        self.assertEqual(self.player_manager.get_gold(self.player2), self.starting_gold + archer.GOLD_REWARD_BIG)
+        self.assertEqual(self.player_manager.get_exp(self.player1), self.starting_exp)
+        self.assertEqual(self.player_manager.get_exp(self.player2), self.starting_exp + archer.EXP_REWARD)
 
     def test_same_direction(self):
         self.quest_manager.start_quest(self.quest)
