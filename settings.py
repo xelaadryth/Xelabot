@@ -4,7 +4,7 @@ import os
 import sys
 
 
-VERSION = '2.0.1.7'
+VERSION = '2.0.1.8'
 
 
 ########################################################################################################################
@@ -27,6 +27,20 @@ AUTO_RESTART_ON_CRASH = False
 ENABLE_REQUEST_JOIN = True
 
 ########################################################################################################################
+# URL and file names for hosting associated bot files
+########################################################################################################################
+BASE_URL = 'https://dl.dropboxusercontent.com/u/90882877/Xelabot/'
+VERSION_FILENAME = 'version.txt'
+EXECUTABLE_FILENAME = 'xelabot.exe'
+HELP_FILENAME = 'faq.txt'
+
+########################################################################################################################
+# External site dependencies
+########################################################################################################################
+# Format with lowercase streamer name and query for a json response
+CHATTERS_URL = 'https://tmi.twitch.tv/group/user/{}/chatters'
+
+########################################################################################################################
 # Twitch and IRC settings
 ########################################################################################################################
 # Twitch settings
@@ -42,14 +56,6 @@ IRC_CHUNK_DELAY = 0.15
 IRC_SEND_COOLDOWN = 1.6
 # Rate-limit protection: 50 JOINs per 15 seconds, or 0.3 sleep time
 IRC_JOIN_SLEEP_TIME = 0.35
-
-########################################################################################################################
-# Sites and urls that should be hosted
-########################################################################################################################
-BASE_URL = 'https://dl.dropboxusercontent.com/u/90882877/Xelabot/'
-VERSION_FILENAME = 'version.txt'
-EXECUTABLE_FILENAME = 'xelabot.exe'
-HELP_FILENAME = 'faq.txt'
 
 ########################################################################################################################
 # Local file paths

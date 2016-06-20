@@ -1,9 +1,10 @@
 from copy import deepcopy
 import json
 import os
+import urllib.request
 
 from .channel import Channel
-from utils.logger import log
+from utils.logger import log, log_error
 
 
 import settings
@@ -145,3 +146,69 @@ class ChannelManager:
             if channel_data['auto_join']:
                 log('Joining channel: {}...'.format(channel_name))
                 self.bot.join_channel(channel_name)
+
+    @staticmethod
+    def get_chatters(channel_name):
+        """
+        Gets a list of chatters in a broadcaster's chatroom, sorted by their permissions in alphabetical order.
+
+        {
+            "_links": {},
+            "chatter_count": 4,
+            "chatters": {
+                "moderators": [
+                    "mod_name",
+                    "broadcaster_name"
+                ],
+                "staff": [],
+                "admins": [],
+                "global_mods": [],
+                "viewers": [
+                    "other_viewer",
+                    "viewer_1"
+                ]
+            }
+        }
+        :param channel_name: str - The name of the channel you want the chatters from
+        :return: dict - A dictionary of the above form, namely moderators and viewers
+        """
+        try:
+            with urllib.request.urlopen(settings.CHATTERS_URL.format(channel_name.lower())) as chatters_response:
+                chatters = chatters_response.read().decode(encoding='UTF-8')
+            return json.loads(chatters)
+        except Exception as e:
+            log_error('Failed to get chatters dict', e)
+            return {}
+
+    @staticmethod
+    def get_moderators(channel_name):
+        """
+        Gets a list of moderators present in a broadcaster's chatroom in alphabetical order.
+
+        channel_name: str - The name of the channel you want the mods from
+        :return: list<str> - A list of alphabetized mods
+        """
+        try:
+            chatters = ChannelManager.get_chatters(channel_name)
+            return chatters['chatters']['moderators']
+        except Exception as e:
+            log_error('Failed to get online mod list', e)
+            return []
+
+    @staticmethod
+    def get_viewers(channel_name):
+        """
+        Gets a list of viewers present in a broadcaster's chatroom
+
+        channel_name: str - The name of the channel you want the mods from
+        :return: list<str> - A list of viewers (not alphabetized necessarily)
+        """
+        try:
+            chatters = ChannelManager.get_chatters(channel_name)
+            viewers = []
+            for _, categorized_viewers in chatters['chatters'].items():
+                viewers.extend(categorized_viewers)
+            return viewers
+        except Exception as e:
+            log_error('Failed to get online viewers list', e)
+            return []
