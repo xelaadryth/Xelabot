@@ -274,7 +274,7 @@ class QuestPlayerManager(PlayerManager):
         player = self.players[username]
         msg = '{}Level: {} ({} Exp), Gold: {}{}'.format(
             'Prestige: {}, '.format(player['prestige']) if player['prestige'] else '',
-            self.get_level(username), player['exp'], player['gold'],
+            self.get_level(username), round(player['exp'], 1), round(player['gold'], 1),
             ', Items: {}'.format(self.list_items(player['items'])) if player['items'] else '')
         self.bot.send_whisper(username, msg)
 
