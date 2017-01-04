@@ -17,7 +17,7 @@ Viewer Chat Commands:
 		Asks the bot to leave your channel (if broadcaster enables the setting)
 	
 Viewer Whisper Commands:
-	!faq
+	!xelabot
 		Whispers you a link to this FAQ
 	!stats
 		Whispers you your vital stats

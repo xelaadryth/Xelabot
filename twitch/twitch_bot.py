@@ -148,7 +148,7 @@ class TwitchBot(IRCBot):
             display_name, is_mod, is_sub = TwitchBot.parse_tags(raw_msg_tokens[0][1:])
 
             # If we fail to get the display name for whatever reason, get it from the raw IRC message
-            if display_name is None:
+            if not display_name:
                 display_name = raw_msg_tokens[1].split('!')[0][1:]
             target_name = raw_msg_tokens[3]
             # Channel messages have channel name starting with '#', whispers have no symbol

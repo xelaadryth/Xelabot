@@ -27,7 +27,7 @@ class QuestBot(TwitchBot):
 
         # Commands for direct whispers to the bot
         self.whisper_commands = CommandSet(exact_match_commands={
-            '!faq': self.faq_whisper,
+            '!xelabot': self.faq_whisper,
             '!help': self.faq_whisper,
             '!gold': self.stats_whisper,
             '!exp': self.stats_whisper,
@@ -39,8 +39,9 @@ class QuestBot(TwitchBot):
     def faq_whisper(self, display_name):
         if not display_name:
             return
-        self.send_whisper(display_name,
-                          'Information and an FAQ on Xelabot can be found at: http://github.com/Xelaadryth/Xelabot')
+        self.send_whisper(
+            display_name, 'Information and an FAQ on Xelabot can be found at: ' +
+            'https://github.com/xelaadryth/Xelabot/blob/master/faq.txt')
 
     def stats_whisper(self, display_name):
         if not display_name:

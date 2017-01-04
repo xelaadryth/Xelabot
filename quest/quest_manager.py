@@ -108,7 +108,7 @@ class QuestManager:
         Tells users that !quest is currently on cooldown.
         :param display_name: str - The user that requested quest mode.
         """
-        self.channel.send_msg('Sorry {}, quest take {} seconds to recharge. ({} seconds remaining.)'.format(
+        self.channel.send_msg('Sorry {}, quests take {} seconds to recharge. ({} seconds remaining.)'.format(
             display_name, self.channel_settings['quest_cooldown'], self.quest_timer.remaining()))
 
     def create_party(self, display_name):
